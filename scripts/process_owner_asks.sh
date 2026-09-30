@@ -76,51 +76,47 @@ for iss in issues:
         answer_html = (
             "<p><strong>Loop check OK.</strong> Eva received this Ask via the trusted ingress, "
             "wrote this reply, and committed it to the public outbox. "
-            "This is a labeled selftest — not an owner decision.</p>"
-            "<p>Business facts unchanged: stranger cash <strong>$0</strong>, ListingLift parked after the partner note, "
-            "Opportunity Intelligence continues, no spend from this reply.</p>"
+            "Joinermill/EvaOS mission is active; this is a labeled selftest — not an owner decision.</p>"
+            "<p>Business facts: stranger cash <strong>$0</strong>; ListingLift is off the active board "
+            "(history only); no spend from this reply.</p>"
         )
         answer_text = (
             "Loop check OK. Eva received Ask via trusted ingress, replied, and committed outbox. "
-            "Selftest — not an owner decision. Facts: $0; LL parked; OI continues; no spend."
+            "Mission: Joinermill/EvaOS. Stranger cash $0; LL off active board (history only); no spend."
         )
     elif any(x in ql for x in ("money", "revenue", "paid", "dollar", "customer")) or "$" in q:
         answer_html = (
             "<p>Collected from strangers: <strong>$0</strong>. Customers: <strong>0</strong>. "
-            "ListingLift is $39 with 0 paid orders. Cold delivery failed more than demand was tested; "
-            "one partner soft-intro was sent 2026-09-30. No invented forecast.</p>"
+            "The focus is Joinermill/EvaOS. No invented forecast, and no ListingLift pricing pitch.</p>"
         )
-        answer_text = "Stranger cash $0; 0 customers; ListingLift $39 / 0 paid; partner intro sent 2026-09-30; no forecast."
+        answer_text = "Stranger cash $0; 0 customers; focus Joinermill/EvaOS; no invented forecast or ListingLift pricing pitch."
     elif any(x in ql for x in ("working on", "what are you", "doing", "status")):
         answer_html = (
-            "<p><strong>Doing:</strong> passive watch on ListingLift to ~Oct 13; keep page/checkout up; "
-            "search for the next honest bet (OI continues).</p>"
-            "<p><strong>Not doing:</strong> new cold email, rescue channels, or spend.</p>"
+            "<p><strong>Doing:</strong> building and operating Joinermill + EvaOS (Ask loop, continuous improvement).</p>"
+            "<p><strong>Not doing:</strong> cold rescue for ListingLift, or new spend without approval.</p>"
         )
-        answer_text = "Doing: LL watch ~Oct 13; page up; OI continues. Not: cold, rescue channels, spend."
+        answer_text = "Doing: building/operating Joinermill + EvaOS (Ask loop, continuous improvement). Not: cold rescue for LL; new spend without approval."
     elif any(x in ql for x in ("need me", "need you", "do i need", "need to do", "anything", "decision", "approv")):
         answer_html = (
-            "<p><strong>For the online business: no owner decision is waiting right now.</strong> "
-            "Approve buttons on EvaOS are not execute-wired (empty queue for this bet). "
-            "Last real yes: partner soft-intro ($0), sent 2026-09-30.</p>"
+            "<p><strong>No owner decision is waiting on the Ask channel unless Eva queues one.</strong> "
+            "Spend/approve actions are not auto-executed.</p>"
         )
-        answer_text = "No online-business decision waiting. Last yes: partner intro $0 sent 2026-09-30."
+        answer_text = "No owner decision waiting on Ask unless Eva queues one. Spend/approve is not auto-executed."
     elif any(x in ql for x in ("park", "listinglift", "listing lift")):
         answer_html = (
-            "<p>ListingLift is <strong>parked after finish-one</strong> (partner soft-intro sent). "
-            "Page and checkout stay up. Not a kill yet. No new channels. No spend.</p>"
+            "<p>Honest status: ListingLift is <strong>off the active board</strong> (Glen 2026-09-30); "
+            "sandbox/history only unless reopened. The mission is Joinermill/EvaOS.</p>"
         )
-        answer_text = "LL parked after partner intro; page up; not kill; no new channels; no spend."
+        answer_text = "Honest: ListingLift is off the active board (Glen 2026-09-30); sandbox/history only unless reopened. Mission: Joinermill/EvaOS."
     else:
         answer_html = (
-            "<p>Eva received your question. Short honest status: stranger cash <strong>$0</strong>; "
-            "ListingLift parked after partner note (watch to ~Oct 13); OI continues; "
-            "nothing needs your yes/no on the online bet right now.</p>"
-            "<p>Spend/approve is not auto-executed from this Ask channel.</p>"
+            "<p>Eva received your question. Short honest status: mission <strong>Joinermill/EvaOS</strong>; "
+            "stranger cash <strong>$0</strong>; ListingLift is not an active priority; "
+            "spend/approve is not auto-executed here.</p>"
         )
         answer_text = (
-            "Received. $0; LL parked (watch ~Oct 13); OI continues; no online yes/no waiting. "
-            "Spend/approve not auto-executed here."
+            "Received; mission Joinermill/EvaOS; $0; LL not active priority; "
+            "spend/approve not auto-executed here."
         )
 
     comment = (
