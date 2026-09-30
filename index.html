@@ -7,6 +7,132 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<aside class="eva-clock" id="eva-clock" aria-hidden="true" title="Local time">
+  <svg class="clock-face" viewBox="0 0 100 100" role="img" aria-label="Analog clock">
+    <defs>
+      <radialGradient id="dialGrad" cx="40%" cy="34%" r="68%">
+        <stop offset="0%" stop-color="#fffdf8"/>
+        <stop offset="48%" stop-color="#f4ebe0"/>
+        <stop offset="100%" stop-color="#e2d5c0"/>
+      </radialGradient>
+      <linearGradient id="bezelGrad" x1="18%" y1="8%" x2="86%" y2="92%">
+        <stop offset="0%" stop-color="#8a7a62"/>
+        <stop offset="22%" stop-color="#4a4034"/>
+        <stop offset="55%" stop-color="#2c261e"/>
+        <stop offset="78%" stop-color="#5c5040"/>
+        <stop offset="100%" stop-color="#3a3228"/>
+      </linearGradient>
+      <linearGradient id="glassSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"/>
+        <stop offset="42%" stop-color="#ffffff" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="dialShade" x="-12%" y="-12%" width="124%" height="124%">
+        <feDropShadow dx="0" dy="0.7" stdDeviation="0.9" flood-color="#1a1814" flood-opacity="0.16"/>
+      </filter>
+    </defs>
+    <!-- Case -->
+    <circle cx="50" cy="50" r="49" fill="url(#bezelGrad)"/>
+    <circle cx="50" cy="50" r="45.6" fill="none" stroke="#d2c4a8" stroke-width="0.9" opacity="0.65"/>
+    <circle cx="50" cy="50" r="44.4" fill="url(#dialGrad)" filter="url(#dialShade)"/>
+    <circle cx="50" cy="50" r="42.6" fill="none" stroke="#2a241c" stroke-width="0.3" opacity="0.28"/>
+    <!-- Soft glass sheen -->
+    <path d="M18,38 A32,32 0 0,1 82,38" fill="none" stroke="url(#glassSheen)" stroke-width="7" stroke-linecap="round" opacity="0.55"/>
+    <g class="ticks" stroke="#1a1814" stroke-linecap="round">
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(0 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(6 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(12 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(18 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(24 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(30 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(36 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(42 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(48 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(54 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(60 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(66 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(72 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(78 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(84 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(90 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(96 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(102 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(108 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(114 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(120 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(126 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(132 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(138 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(144 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(150 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(156 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(162 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(168 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(174 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(180 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(186 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(192 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(198 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(204 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(210 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(216 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(222 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(228 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(234 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(240 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(246 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(252 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(258 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(264 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(270 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(276 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(282 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(288 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(294 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(300 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(306 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(312 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(318 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(324 50 50)"/>
+      <line x1="50" y1="10.2" x2="50" y2="16.2" stroke-width="1.45" transform="rotate(330 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(336 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(342 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(348 50 50)"/>
+      <line x1="50" y1="10.4" x2="50" y2="13.0" stroke-width="0.5" opacity="0.5" transform="rotate(354 50 50)"/>
+    </g>
+    <g class="numerals" fill="#1a1814" font-family="Georgia, 'Iowan Old Style', Palatino, 'Times New Roman', serif" font-size="8.8" font-weight="600">
+      <text x="65.40" y="23.33" text-anchor="middle" dominant-baseline="central">1</text>
+      <text x="76.67" y="34.60" text-anchor="middle" dominant-baseline="central">2</text>
+      <text x="80.80" y="50.00" text-anchor="middle" dominant-baseline="central">3</text>
+      <text x="76.67" y="65.40" text-anchor="middle" dominant-baseline="central">4</text>
+      <text x="65.40" y="76.67" text-anchor="middle" dominant-baseline="central">5</text>
+      <text x="50.00" y="80.80" text-anchor="middle" dominant-baseline="central">6</text>
+      <text x="34.60" y="76.67" text-anchor="middle" dominant-baseline="central">7</text>
+      <text x="23.33" y="65.40" text-anchor="middle" dominant-baseline="central">8</text>
+      <text x="19.20" y="50.00" text-anchor="middle" dominant-baseline="central">9</text>
+      <text x="23.33" y="34.60" text-anchor="middle" dominant-baseline="central">10</text>
+      <text x="34.60" y="23.33" text-anchor="middle" dominant-baseline="central">11</text>
+      <text x="50.00" y="19.20" text-anchor="middle" dominant-baseline="central">12</text>
+    </g>
+    <!-- Hour hand — tapered -->
+    <g class="hand-hour">
+      <path d="M48.55 52.8 L50 26.5 L51.45 52.8 Z" fill="#1a1814"/>
+      <path d="M49.15 51.5 L50 29.5 L50.85 51.5 Z" fill="#3a342c" opacity="0.35"/>
+    </g>
+    <!-- Minute hand — tapered -->
+    <g class="hand-minute">
+      <path d="M49.05 53 L50 14.8 L50.95 53 Z" fill="#1a1814"/>
+    </g>
+    <!-- Second hand — oxblood -->
+    <g class="hand-second">
+      <line x1="50" y1="60" x2="50" y2="13.5" stroke="#8b2f24" stroke-width="0.75" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="1.45" fill="#8b2f24"/>
+    </g>
+    <!-- Pivot -->
+    <circle cx="50" cy="50" r="2.25" fill="#2a241c"/>
+    <circle cx="50" cy="50" r="1.1" fill="#b8a888"/>
+  </svg>
+  <p class="clock-meta"><span class="clock-date"></span><span class="clock-tz"></span></p>
+</aside>
 <div class="shell">
 
   <div class="brand">
@@ -227,5 +353,6 @@
 
 </div>
 <script src="app.js"></script>
+<script src="clock.js"></script>
 </body>
 </html>

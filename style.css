@@ -20,6 +20,7 @@
 
 body {
   margin: 0;
+  position: relative;
   font: 17px/1.55 Georgia, "Iowan Old Style", Palatino, "Times New Roman", serif;
   color: var(--ink);
   background: var(--bg);
@@ -533,4 +534,81 @@ button.secondary {
 }
 .real-ask .bridge {
   margin-bottom: 12px;
+}
+
+/* Atmosphere clock — upper-left, personality without hierarchy. Isolated from Ask. */
+.eva-clock {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  width: 76px;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.92;
+  transition: opacity 0.25s ease;
+}
+.eva-clock:hover { opacity: 1; }
+
+.eva-clock .clock-face {
+  display: block;
+  width: 76px;
+  height: 76px;
+  filter: drop-shadow(0 1px 2px rgba(26, 24, 20, 0.12));
+}
+
+.eva-clock .clock-meta {
+  margin: 4px 0 0;
+  text-align: center;
+  font: 500 9px/1.25 system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  opacity: 0.85;
+}
+.eva-clock .clock-date { display: block; }
+.eva-clock .clock-tz {
+  display: block;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 8px;
+  opacity: 0.8;
+}
+
+/* Wide layouts: keep clear of centered shell; never cover Attention. */
+@media (min-width: 900px) {
+  .eva-clock {
+    top: 22px;
+    left: 22px;
+    width: 84px;
+  }
+  .eva-clock .clock-face {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+/* Narrow: sit with brand row — atmosphere, not a second header. */
+@media (max-width: 720px) {
+  .eva-clock {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 44px;
+    opacity: 0.9;
+  }
+  .eva-clock .clock-face {
+    width: 44px;
+    height: 44px;
+  }
+  .eva-clock .clock-meta { display: none; }
+  .brand {
+    min-height: 44px;
+    padding-left: 56px;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eva-clock { transition: none; }
 }
