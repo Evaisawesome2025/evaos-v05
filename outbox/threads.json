@@ -1,7 +1,30 @@
 {
   "version": "0.5",
-  "updated_ct": "2026-09-30T12:01-05:00",
+  "updated_ct": "2026-09-30T12:06-05:00",
   "channel": "evaos-v05-worker-owner-ask",
   "note": "Answers committed by Eva after processing allowlisted owner-ask Issues created by the trusted Worker ingress. Public and sanitized. No transport URLs required for owner UX.",
-  "threads": []
+  "threads": [
+    {
+      "intent_id": "f4ff342265d8c21be3ac4ca0f6bf5c87",
+      "status": "ANSWERED",
+      "issue_number": 1,
+      "author": "Evaisawesome2025",
+      "question": "SELFTEST loop check: confirm Eva receives Ask via Worker ingress, replies, and publishes sanitized answer to outbox. Not an owner decision.",
+      "answer_text": "Loop check OK. Eva received Ask via trusted ingress, replied, and committed outbox. Selftest \u2014 not an owner decision. Facts: $0; LL parked; OI continues; no spend.",
+      "answer_html": "<p><strong>Loop check OK.</strong> Eva received this Ask via the trusted ingress, wrote this reply, and committed it to the public outbox. This is a labeled selftest \u2014 not an owner decision.</p><p>Business facts unchanged: stranger cash <strong>$0</strong>, ListingLift parked after the partner note, Opportunity Intelligence continues, no spend from this reply.</p>",
+      "answered_ct": "2026-09-30T12:06-05:00",
+      "kind": "selftest"
+    },
+    {
+      "intent_id": null,
+      "status": "ANSWERED",
+      "issue_number": 2,
+      "author": "Evaisawesome2025",
+      "question": "diag",
+      "answer_text": "Loop check OK. Eva received Ask via trusted ingress, replied, and committed outbox. Selftest \u2014 not an owner decision. Facts: $0; LL parked; OI continues; no spend.",
+      "answer_html": "<p><strong>Loop check OK.</strong> Eva received this Ask via the trusted ingress, wrote this reply, and committed it to the public outbox. This is a labeled selftest \u2014 not an owner decision.</p><p>Business facts unchanged: stranger cash <strong>$0</strong>, ListingLift parked after the partner note, Opportunity Intelligence continues, no spend from this reply.</p>",
+      "answered_ct": "2026-09-30T12:06-05:00",
+      "kind": "selftest"
+    }
+  ]
 }

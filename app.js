@@ -176,7 +176,7 @@
 
   /* --- Real Ask: POST to Cloudflare Worker (bearer in localStorage only) --- */
   // Worker URL is public (not a secret). Bearer never belongs in this file.
-  var WORKER_URL = (window.EVAOS_WORKER_URL || "https://evaos-v05-ask.evaisawesome2025.workers.dev");
+  var WORKER_URL = (window.EVAOS_WORKER_URL || "https://evaos-v05-ask.stump-lawyer-880.workers.dev");
   var OUTBOX_URL = "outbox/threads.json";
   var TOKEN_KEY = "evaos_v05_owner_bearer";
   var PENDING_KEY = "evaos_v05_pending";
