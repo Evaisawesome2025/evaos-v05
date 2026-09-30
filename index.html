@@ -55,7 +55,7 @@
       <li>ListingLift moved from “keep pushing” to <strong>park and watch</strong>.</li>
       <li>Attention shifted to finding the next honest bet. That search did not pause.</li>
       <li>Nothing was killed yet. Killing needs a clearer “nobody wants it” signal than we have.</li>
-      <li><strong>New in 0.5:</strong> Ask Eva <em>inside</em> EvaOS — Submit stays here. Trusted Worker ingress (GitHub is plumbing only, not owner UX).</li>
+      <li><strong>New in 0.5:</strong> Ask Eva <em>inside</em> EvaOS — type, press Submit, stay on this page. Reply shows up here when Eva answers.</li>
     </ul>
 
     <h2>What was learned</h2>
@@ -75,16 +75,16 @@
 
   <p class="section-title">Ask Eva (real)</p>
   <section class="real-ask" aria-label="Ask Eva for real">
-    <p class="honest"><strong>Real closed loop — not fake chat.</strong> Type below and press <strong>Submit</strong>. You stay on EvaOS. A trusted Worker accepts the Ask (owner bearer required once). Eva processes on the box and the reply lands here. This page has <em>no</em> write credentials in source. Public channel — do not put passwords, card numbers, or private emails in the question.</p>
+    <p class="honest"><strong>Real Ask — not fake chat.</strong> Type a short business question and press <strong>Submit</strong>. You stay on this page. Eva answers for real; the reply appears below. One-time setup: paste the access code Eva gave you (expand below). Public page — do not put passwords, card numbers, or private emails in the question.</p>
 
     <details class="token-setup" id="token-setup">
-      <summary>Owner token (dogfood — paste once)</summary>
+      <summary>Access code (paste once on this device)</summary>
       <div class="body">
-        <p class="hint">Interim single-owner bearer. Paste the same value stored in Worker secret <code>OWNER_BEARER</code>. Saved only in this browser’s localStorage — never committed to git. Rotate if this device is shared. <strong>DOGFOOD-ACCEPTABLE · PRODUCTION-UNACCEPTABLE</strong> as long-term auth.</p>
+        <p class="hint">This is a single-owner access code for dogfood — not a password for email or banking. Paste the value Eva handed you for this page. It stays only in this browser until you Clear. If someone else uses this device, Clear when you leave.</p>
         <form class="compose" id="token-form" autocomplete="off">
-          <label class="sr-only" for="owner-token-input">Owner bearer token</label>
-          <input id="owner-token-input" type="password" maxlength="128" placeholder="Paste owner bearer…" spellcheck="false">
-          <button type="submit">Save token</button>
+          <label class="sr-only" for="owner-token-input">Owner access code</label>
+          <input id="owner-token-input" type="password" maxlength="128" placeholder="Paste access code…" spellcheck="false">
+          <button type="submit">Save</button>
           <button type="button" id="clear-token" class="secondary">Clear</button>
         </form>
         <p class="token-status" id="token-status" aria-live="polite"></p>
@@ -97,7 +97,13 @@
       <button type="submit" class="primary" id="ask-submit">Submit</button>
     </form>
     <p class="ask-status" id="ask-status" aria-live="polite"></p>
-    <p class="bridge">Path: EvaOS Submit → Cloudflare Worker (validates bearer · rate limit · size cap) → hidden inbox → Eva processes → outbox reply here. States: <strong>SENT</strong> / <strong>PROCESSING</strong> / <strong>ANSWERED</strong> / <strong>FAILED</strong>. No GitHub button as primary UX. Self-tests labeled.</p>
+    <p class="bridge">You will see <strong>SENT</strong>, then <strong>PROCESSING</strong>, then <strong>ANSWERED</strong> (or <strong>FAILED</strong>). Eva is not always-on yet — she processes Asks on the box; this page refreshes the reply when it is ready. Self-tests are labeled.</p>
+    <details class="more bridge-detail">
+      <summary>How this works (optional)</summary>
+      <div class="body">
+        <p class="hint">Submit goes to a trusted gate that checks your access code, size, and rate. Eva processes on the box and publishes a sanitized reply here. Plumbing stays off the main path — you do not open issue trackers or cloud consoles to Ask.</p>
+      </div>
+    </details>
 
     <p class="local-ask-label">Pending + replies</p>
     <div class="pending" id="pending" aria-live="polite"></div>

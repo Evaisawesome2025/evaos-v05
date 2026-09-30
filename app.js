@@ -223,10 +223,10 @@
     var setup = document.getElementById("token-setup");
     if (!el) return;
     if (getToken()) {
-      el.textContent = "Token saved in this browser (localStorage). Ready to Submit.";
+      el.textContent = "Access code saved on this device. Ready to Submit.";
       if (setup) setup.open = false;
     } else {
-      el.textContent = "No token yet — expand and paste before Submit.";
+      el.textContent = "No access code yet — expand and paste before Submit.";
       if (setup) setup.open = true;
     }
   }
@@ -239,7 +239,7 @@
       var v = (input && input.value || "").trim();
       if (!v || v.length < 16) {
         var st = document.getElementById("token-status");
-        if (st) st.textContent = "Token looks too short. Paste the full OWNER_BEARER value.";
+        if (st) st.textContent = "That code looks too short. Paste the full access code Eva gave you.";
         return;
       }
       setToken(v);
@@ -253,7 +253,7 @@
       setToken("");
       updateTokenStatus();
       var st = document.getElementById("token-status");
-      if (st) st.textContent = "Token cleared from this browser.";
+      if (st) st.textContent = "Access code cleared from this device.";
     });
   }
   updateTokenStatus();
@@ -264,6 +264,22 @@
     el.textContent = text || "";
     el.className = "ask-status" + (cls ? " " + cls : "");
   }
+
+  function friendlyAskError(err, message) {
+    var e = String(err || "");
+    if (message) return String(message);
+    if (e === "unauthorized") return "That access code was not accepted. Check you pasted the full code.";
+    if (e === "rate_limited") return "Too many Asks this hour. Try again later.";
+    if (e === "empty_body") return "Type a short question first.";
+    if (e === "body_too_long") return "Keep it under 240 characters.";
+    if (e === "refused_credential_keywords") return "Public channel — do not put passwords, tokens, or card data in Asks.";
+    if (e === "origin_denied") return "This page origin is not allowed to Submit.";
+    if (e === "write_failed" || e === "ingress_not_configured") return "Ask could not be accepted right now. Try again in a minute.";
+    if (e === "network_or_worker_unreachable") return "Could not reach the Ask service. Check connection or try again.";
+    if (e === "request_failed") return "Ask failed. Try again.";
+    return e || "Ask failed.";
+  }
+
 
   function renderPending() {
     var root = document.getElementById("pending");
@@ -288,9 +304,9 @@
         (p.error
           ? '<p class="hint">' + esc(p.error) + "</p>"
           : p.status === "PROCESSING"
-            ? '<p class="hint">Waiting for Eva to process and publish outbox…</p>'
+            ? '<p class="hint">Waiting for Eva — she processes Asks on the box (not always-on). This list updates when the reply is ready.</p>'
             : p.status === "SENT"
-              ? '<p class="hint">Accepted by trusted ingress. Eva will process on the box.</p>'
+              ? '<p class="hint">Accepted. Eva will answer when she next processes Asks.</p>'
               : "") +
         "</article>";
     });
@@ -325,7 +341,7 @@
       if (!q) return;
       var token = getToken();
       if (!token) {
-        setAskStatus("Paste owner token first (expand “Owner token” above).", "failed");
+        setAskStatus("Paste your access code first (expand “Access code” above).", "failed");
         var setup = document.getElementById("token-setup");
         if (setup) setup.open = true;
         return;
@@ -348,9 +364,8 @@
         })
         .then(function (res) {
           if (!res.ok || !res.data || res.data.status === "FAILED") {
-            var err =
-              (res.data && (res.data.message || res.data.error)) ||
-              "request_failed";
+            var code = (res.data && res.data.error) || "request_failed";
+            var err = friendlyAskError(code, res.data && res.data.message);
             setAskStatus("FAILED — " + err, "failed");
             upsertPending({
               intent_id: (res.data && res.data.intent_id) || "local-" + Date.now(),
@@ -379,13 +394,13 @@
             });
             savePending(list);
             renderPending();
-            setAskStatus("PROCESSING — Eva has not published a reply yet.", "processing");
+            setAskStatus("PROCESSING — waiting for Eva (on-demand, not always-on).", "processing");
           }, 800);
           // Start polling outbox sooner
           pollOutbox(true);
         })
         .catch(function () {
-          setAskStatus("FAILED — network or Worker unreachable.", "failed");
+          setAskStatus("FAILED — " + friendlyAskError("network_or_worker_unreachable"), "failed");
           upsertPending({
             intent_id: "local-" + Date.now(),
             question: q,
@@ -424,7 +439,7 @@
     savePending(still);
     renderPending();
     if (still.some(function (p) { return p.status === "PROCESSING" || p.status === "SENT"; })) {
-      setAskStatus("PROCESSING — waiting for Eva outbox…", "processing");
+      setAskStatus("PROCESSING — waiting for Eva (on-demand). Reply will appear below.", "processing");
     } else if (Object.keys(answeredIds).length && pending.length && still.length < pending.length) {
       setAskStatus("ANSWERED — reply below.", "answered");
     }

@@ -93,7 +93,7 @@ for iss in issues:
             "<p><strong>Not doing:</strong> new cold email, rescue channels, or spend.</p>"
         )
         answer_text = "Doing: LL watch ~Oct 13; page up; OI continues. Not: cold, rescue channels, spend."
-    elif any(x in ql for x in ("need me", "need you", "decision", "approv")):
+    elif any(x in ql for x in ("need me", "need you", "do i need", "need to do", "anything", "decision", "approv")):
         answer_html = (
             "<p><strong>For the online business: no owner decision is waiting right now.</strong> "
             "Approve buttons on EvaOS are not execute-wired (empty queue for this bet). "
