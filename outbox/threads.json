@@ -1,9 +1,20 @@
 {
   "version": "0.5",
-  "updated_ct": "2026-09-30T18:03-05:00",
+  "updated_ct": "2026-09-30T18:26-05:00",
   "channel": "evaos-v05-worker-owner-ask",
   "note": "Answers committed by Eva after processing allowlisted owner-ask Issues created by the trusted Worker ingress. Public and sanitized. No transport URLs required for owner UX.",
   "threads": [
+    {
+      "intent_id": "47ec5c7205cbbc01e781607f0990a6e0",
+      "status": "ANSWERED",
+      "issue_number": 13,
+      "author": "Evaisawesome2025",
+      "question": "SELFTEST loop-check 20260930-1826: dual-write joinermill outbox publish PoW?",
+      "answer_text": "Loop check OK. Eva received Ask via trusted ingress, replied, and committed outbox. Selftest \u2014 not an owner decision. Facts: $0; LL parked; OI continues; no spend.",
+      "answer_html": "<p><strong>Loop check OK.</strong> Eva received this Ask via the trusted ingress, wrote this reply, and committed it to the public outbox. This is a labeled selftest \u2014 not an owner decision.</p><p>Business facts unchanged: stranger cash <strong>$0</strong>, ListingLift parked after the partner note, Opportunity Intelligence continues, no spend from this reply.</p>",
+      "answered_ct": "2026-09-30T18:26-05:00",
+      "kind": "selftest"
+    },
     {
       "intent_id": "792787c8def1aaa9c6d40fd38101f9b2",
       "status": "ANSWERED",
