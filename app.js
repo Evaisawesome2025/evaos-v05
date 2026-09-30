@@ -177,7 +177,7 @@
       el.textContent = "Access code saved on this device. Ready to Send.";
       if (setup) setup.open = false;
     } else {
-      el.textContent = "No access code yet — expand and paste before Send.";
+      el.textContent = "Paste your access code here before Send.";
       if (setup) setup.open = true;
     }
   }
@@ -231,6 +231,29 @@
     return e || "Send failed.";
   }
 
+  function voiceStatus(status) {
+    if (status === "PROCESSING") return "Eva is working on this";
+    if (status === "ANSWERED") return "Eva replied";
+    if (status === "FAILED") return "That didn’t reach Eva";
+    return "Eva got it";
+  }
+
+  function quietWhen(raw) {
+    if (!raw) return "";
+    var d = new Date(raw);
+    if (isNaN(d.getTime())) return "";
+    try {
+      return d.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "";
+    }
+  }
+
   function renderPending() {
     var root = document.getElementById("pending");
     if (!root) return;
@@ -243,20 +266,16 @@
     list.forEach(function (p) {
       html +=
         '<article class="pend">' +
-        '<p class="st">' +
-        esc(p.status || "SENT") +
-        (p.at ? " · " + esc(p.at) : "") +
-        "</p>" +
         '<p class="q">' +
         esc(p.question || "") +
         "</p>" +
+        '<p class="st">' +
+        esc(voiceStatus(p.status)) +
+        "</p>" +
         (p.error
-          ? '<p class="hint">' + esc(p.error) + "</p>"
-          : p.status === "PROCESSING"
-            ? '<p class="hint">Waiting for Eva — she processes messages on the box (not always-on). This updates when the reply is ready.</p>'
-            : p.status === "SENT"
-              ? '<p class="hint">Accepted. Eva will answer when she next processes.</p>'
-              : "") +
+          ? '<p class="hint">' + esc(friendlyAskError(p.error)) + "</p>"
+          : "") +
+        (p.at ? '<p class="when">' + esc(p.at) + "</p>" : "") +
         "</article>";
     });
     root.innerHTML = html;
@@ -281,9 +300,12 @@
       if (!q) return;
       var token = getToken();
       if (!token) {
-        setAskStatus("Paste your access code first (expand “Access code” above).", "failed");
+        setAskStatus("Paste your access code first (just below).", "failed");
         var setup = document.getElementById("token-setup");
-        if (setup) setup.open = true;
+        if (setup) {
+          setup.open = true;
+          setup.scrollIntoView({ block: "nearest" });
+        }
         return;
       }
       if (submitBtn) submitBtn.disabled = true;
@@ -306,7 +328,7 @@
           if (!res.ok || !res.data || res.data.status === "FAILED") {
             var code = (res.data && res.data.error) || "request_failed";
             var err = friendlyAskError(code, res.data && res.data.message);
-            setAskStatus("FAILED — " + err, "failed");
+            setAskStatus(err, "failed");
             upsertPending({
               intent_id: (res.data && res.data.intent_id) || "local-" + Date.now(),
               question: q,
@@ -318,7 +340,7 @@
           }
           var intentId = res.data.intent_id;
           realInput.value = "";
-          setAskStatus("SENT — accepted. Waiting for Eva…", "sent");
+          setAskStatus("Eva got it", "sent");
           upsertPending({
             intent_id: intentId,
             question: q,
@@ -333,17 +355,18 @@
             });
             savePending(list);
             renderPending();
-            setAskStatus("PROCESSING — waiting for Eva (on-demand, not always-on).", "processing");
+            setAskStatus("Eva is working on this", "processing");
           }, 800);
           pollOutbox(true);
         })
         .catch(function () {
-          setAskStatus("FAILED — " + friendlyAskError("network_or_worker_unreachable"), "failed");
+          var netErr = friendlyAskError("network_or_worker_unreachable");
+          setAskStatus(netErr, "failed");
           upsertPending({
             intent_id: "local-" + Date.now(),
             question: q,
             status: "FAILED",
-            error: "network_or_worker_unreachable",
+            error: netErr,
             at: new Date().toLocaleString(),
           });
         })
@@ -383,32 +406,31 @@
     savePending(still);
     renderPending();
     if (still.some(function (p) { return p.status === "PROCESSING" || p.status === "SENT"; })) {
-      setAskStatus("PROCESSING — waiting for Eva (on-demand). Reply will appear below.", "processing");
+      setAskStatus("Eva is working on this", "processing");
     } else if (Object.keys(answeredIds).length && pending.length && still.length < pending.length) {
-      setAskStatus("ANSWERED — reply below.", "answered");
+      setAskStatus("Eva replied", "answered");
     }
 
     if (!threads.length) {
       root.innerHTML =
-        '<p class="threads-empty" id="threads-empty">No replies yet. Send a message above — you stay here.</p>';
+        '<p class="threads-empty" id="threads-empty">When Eva answers, it shows up here.</p>';
       return;
     }
     var html = "";
     threads.forEach(function (t) {
-      var st = " · " + esc(t.status || "ANSWERED");
       var answerHtml = (t.answer_html || esc(t.answer_text || "")).trim();
+      var when = quietWhen(t.answered_ct);
+      var about = "Eva";
+      if (t.question) about += " · you asked “" + esc(t.question) + "”";
+      if (when) about += " · " + esc(when);
       html +=
-        '<article class="thread">' +
-        '<p class="meta">' +
-        esc(t.answered_ct || "") +
-        st +
-        "</p>" +
-        '<p class="q">' +
-        esc(t.question || "") +
-        "</p>" +
-        '<div class="a">' +
+        '<article class="reply">' +
+        '<div class="words">' +
         answerHtml +
         "</div>" +
+        '<p class="about">' +
+        about +
+        "</p>" +
         "</article>";
     });
     root.innerHTML = html;

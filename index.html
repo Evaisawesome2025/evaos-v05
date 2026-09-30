@@ -167,7 +167,7 @@
     </div>
   </section>
 
-  <p class="section-title">Catch me up</p>
+  <section class="conversation" aria-label="Eva">
   <article class="letter" id="catch-me-up" aria-label="Catch me up from Eva">
     <p class="from">A short letter from Eva · snapshot 2026-09-30 ~12:05 CT</p>
 
@@ -180,7 +180,7 @@
       <li>ListingLift moved from “keep pushing” to <strong>park and watch</strong>.</li>
       <li>Attention shifted to finding the next honest bet. That search did not pause.</li>
       <li>Nothing was killed yet. Killing needs a clearer “nobody wants it” signal than we have.</li>
-      <li>You can <strong>message Eva here</strong> — type, send, stay on this page. A real reply shows up when Eva answers (she is on-demand, not always-on).</li>
+      <li>Answer just below. Eva replies in this same place when she next works.</li>
     </ul>
 
     <h2>What was learned</h2>
@@ -195,12 +195,21 @@
     <p>Read the one partner note honestly (a reply, a share, or silence). Watch whether anyone pays $39. Keep looking for the next business in the background. Do not invent new ListingLift channels. Do not spend.</p>
 
     <h2>Do you need to do anything?</h2>
-    <p><strong>For the online business: no.</strong> Eva keeps watching and searching. Message Eva below if you want a real reply — or leave. That is the point.</p>
+    <p><strong>For the online business: no.</strong> Eva keeps watching and searching. Answer below if you want a reply — or leave. That is the point.</p>
   </article>
 
-  <p class="section-title">Message Eva</p>
-  <section class="real-ask" aria-label="Message Eva">
-    <p class="honest">One real channel. Not fake chat. Short business questions only. Public page — no passwords, card numbers, or private emails. Eva answers when she next processes (on-demand, not always-on).</p>
+  <div class="real-ask" id="message-eva" aria-label="Reply to Eva">
+    <form class="compose" id="real-ask-form" autocomplete="off">
+      <label class="sr-only" for="real-ask-input">Your reply to Eva</label>
+      <input id="real-ask-input" type="text" maxlength="240" placeholder="Answer Eva…" required>
+      <button type="submit" class="primary" id="ask-submit">Send</button>
+    </form>
+    <p class="ask-status" id="ask-status" aria-live="polite"></p>
+    <p class="quiet-truth">Eva answers in this same place when she next works. This page is public — no passwords or card numbers.</p>
+    <div class="pending" id="pending" aria-live="polite"></div>
+    <div class="threads" id="threads" aria-live="polite">
+      <p class="threads-empty" id="threads-empty">Loading replies…</p>
+    </div>
 
     <details class="token-setup" id="token-setup">
       <summary>Access code (paste once on this device)</summary>
@@ -215,19 +224,7 @@
         <p class="token-status" id="token-status" aria-live="polite"></p>
       </div>
     </details>
-
-    <form class="compose" id="real-ask-form" autocomplete="off">
-      <label class="sr-only" for="real-ask-input">Message for Eva</label>
-      <input id="real-ask-input" type="text" maxlength="240" placeholder="Message Eva…" required>
-      <button type="submit" class="primary" id="ask-submit">Send</button>
-    </form>
-    <p class="ask-status" id="ask-status" aria-live="polite"></p>
-    <p class="bridge">You’ll see SENT → PROCESSING → ANSWERED (or FAILED). Reply appears below when ready.</p>
-
-    <div class="pending" id="pending" aria-live="polite"></div>
-    <div class="threads" id="threads" aria-live="polite">
-      <p class="threads-empty" id="threads-empty">Loading replies…</p>
-    </div>
+  </div>
   </section>
 
   <p class="section-title">More detail</p>
@@ -302,7 +299,7 @@
     <div class="body">
       <p><strong>How Message Eva works</strong></p>
       <p class="hint">Send goes to a trusted gate that checks your access code, size, and rate. Eva processes on the box and publishes a sanitized reply here. Plumbing is not the product — you do not open issue trackers or cloud consoles to talk to Eva.</p>
-      <p class="hint">States are honest: SENT / PROCESSING / ANSWERED / FAILED. No fake Eva replies. Approvals are not wired on this page (no fake Approve). Always-on Eva is not built.</p>
+      <p class="hint">After you send, this page says Eva got it, then Eva is working on this, then shows her reply here. If it doesn’t go through, it says so in plain language. She answers when she next works — she is not waiting on this page. No fake replies. Approvals are not wired here.</p>
 
       <p><strong>Needs you — when empty</strong></p>
       <p class="hint">When something needs a yes/no, one simple card would show at the top: what, why, max cost, risk, if approved. Right now the queue is empty — no theater, no disabled Approve buttons in the main view.</p>
