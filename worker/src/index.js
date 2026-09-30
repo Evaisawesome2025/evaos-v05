@@ -9,6 +9,8 @@
  */
 const ALLOWED_ORIGINS = [
   "https://evaisawesome2025.github.io",
+  "https://joinermill.com",
+  "https://www.joinermill.com",
   "http://127.0.0.1:8765",
   "http://localhost:8765",
 ];
