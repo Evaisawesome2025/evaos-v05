@@ -7,11 +7,6 @@ const assert = require("node:assert/strict");
 
 const MAX_BODY = 240;
 const CRED_RE = /\b(password|api[\s_-]?key|secret|token|credit[\s_-]?card|cvv|ssn)\b/i;
-const ALLOWED_ORIGINS = [
-  "https://evaisawesome2025.github.io",
-  "http://127.0.0.1:8765",
-  "http://localhost:8765",
-];
 
 function timingSafeEqual(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;
@@ -47,9 +42,20 @@ describe("body validation", () => {
 });
 
 describe("CORS allowlist", () => {
-  it("allows Pages origin only", () => {
-    assert.ok(ALLOWED_ORIGINS.includes("https://evaisawesome2025.github.io"));
-    assert.equal(ALLOWED_ORIGINS.includes("https://evil.example"), false);
+  it("allows Pages, Joinermill, and local origins from the Worker source", () => {
+    const fs = require("fs");
+    const src = fs.readFileSync(require("path").join(__dirname, "../src/index.js"), "utf8");
+    const block = src.match(/const ALLOWED_ORIGINS = \[([\s\S]*?)\];/);
+    assert.ok(block, "ALLOWED_ORIGINS array missing");
+    const origins = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(origins, [
+      "https://evaisawesome2025.github.io",
+      "https://joinermill.com",
+      "https://www.joinermill.com",
+      "http://127.0.0.1:8765",
+      "http://localhost:8765",
+    ]);
+    assert.equal(origins.includes("https://evil.example"), false);
   });
 });
 

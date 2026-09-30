@@ -17,4 +17,4 @@ npx wrangler deploy
 ```
 
 After deploy, set public Worker URL in Pages `app.js` (`WORKER_URL`) or `window.EVAOS_WORKER_URL`.
-Never commit secrets. CORS allowlist: `https://evaisawesome2025.github.io`.
+Never commit secrets. CORS allowlist: `https://evaisawesome2025.github.io`, `https://joinermill.com`, `https://www.joinermill.com`, plus local `http://127.0.0.1:8765` and `http://localhost:8765`.
