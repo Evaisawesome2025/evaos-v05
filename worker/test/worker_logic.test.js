@@ -9,6 +9,8 @@ const MAX_BODY = 240;
 const CRED_RE = /\b(password|api[\s_-]?key|secret|token|credit[\s_-]?card|cvv|ssn)\b/i;
 const ALLOWED_ORIGINS = [
   "https://evaisawesome2025.github.io",
+  "https://joinermill.com",
+  "https://www.joinermill.com",
   "http://127.0.0.1:8765",
   "http://localhost:8765",
 ];
@@ -47,9 +49,22 @@ describe("body validation", () => {
 });
 
 describe("CORS allowlist", () => {
-  it("allows Pages origin only", () => {
+  it("allows Pages, Joinermill, and local origins", () => {
     assert.ok(ALLOWED_ORIGINS.includes("https://evaisawesome2025.github.io"));
+    assert.ok(ALLOWED_ORIGINS.includes("https://joinermill.com"));
+    assert.ok(ALLOWED_ORIGINS.includes("https://www.joinermill.com"));
+    assert.ok(ALLOWED_ORIGINS.includes("http://127.0.0.1:8765"));
+    assert.ok(ALLOWED_ORIGINS.includes("http://localhost:8765"));
     assert.equal(ALLOWED_ORIGINS.includes("https://evil.example"), false);
+  });
+
+  it("worker source allowlist matches the mirrored list", () => {
+    const fs = require("fs");
+    const src = fs.readFileSync(require("path").join(__dirname, "../src/index.js"), "utf8");
+    const block = src.match(/const ALLOWED_ORIGINS = \[([\s\S]*?)\];/);
+    assert.ok(block, "ALLOWED_ORIGINS block missing from worker source");
+    const fromSource = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(fromSource, ALLOWED_ORIGINS);
   });
 });
 
