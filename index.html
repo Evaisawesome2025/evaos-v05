@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EvaOS · your business</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+
+  <div class="brand">
+    <span>EvaOS · version 0.5</span>
+    <a href="https://evaisawesome2025.github.io/evaos-v04/">prior 0.4</a>
+  </div>
+
+  <section class="attention" aria-label="Attention">
+    <p class="label">Nothing needs you</p>
+    <h1>Eva is working. You’re clear.</h1>
+    <p>No owner decision is waiting on the online business right now.</p>
+  </section>
+
+  <section class="pulse" aria-label="At a glance">
+    <div class="cell">
+      <p class="k">What Eva is doing</p>
+      <p class="v">Watching quietly · searching for the next bet</p>
+    </div>
+    <div class="cell">
+      <p class="k">How the business is doing</p>
+      <p class="v big">$0</p>
+      <p class="hint">collected from strangers · 0 customers</p>
+    </div>
+    <div class="cell">
+      <p class="k">Live offer</p>
+      <p class="v">ListingLift · $39</p>
+      <p class="hint">Checkout live · parked after one partner note</p>
+    </div>
+    <div class="cell">
+      <p class="k">What happens next</p>
+      <p class="v">Passive watch to ~Oct 13</p>
+      <p class="hint">No new outreach · no new channels · no spend</p>
+    </div>
+  </section>
+
+  <p class="section-title">Catch me up</p>
+  <article class="letter" id="catch-me-up" aria-label="Catch me up from Eva">
+    <p class="from">A short letter from Eva · snapshot 2026-09-30 ~12:05 CT</p>
+
+    <h2>What happened</h2>
+    <p>We finished one last high-value test on ListingLift: a soft introduction to a seller-adjacent partner. That note was sent this morning. After it, active investment in ListingLift stopped.</p>
+    <p>Earlier: cold email was parked (delivery failed more than demand was tested). A Reddit post was removed by Reddit — that does not count as a clean public test. The public page and $39 checkout stay up.</p>
+
+    <h2>What changed</h2>
+    <ul>
+      <li>ListingLift moved from “keep pushing” to <strong>park and watch</strong>.</li>
+      <li>Attention shifted to finding the next honest bet. That search did not pause.</li>
+      <li>Nothing was killed yet. Killing needs a clearer “nobody wants it” signal than we have.</li>
+      <li><strong>New in 0.5:</strong> Ask Eva <em>inside</em> EvaOS — Submit stays here. Trusted Worker ingress (GitHub is plumbing only, not owner UX).</li>
+    </ul>
+
+    <h2>What was learned</h2>
+    <ul>
+      <li>Mail that lands in spam is not a demand test.</li>
+      <li>A payment link that “works” can still be the wrong product — we already caught that once and fixed the check.</li>
+      <li>A working demo is not a sale. Strangers paying is the evidence.</li>
+      <li>People paying for a category is not the same as people paying us — several earlier ideas were killed for that reason.</li>
+    </ul>
+
+    <h2>What matters now</h2>
+    <p>Read the one partner note honestly (a reply, a share, or silence). Watch whether anyone pays $39. Keep looking for the next business in the background. Do not invent new ListingLift channels. Do not spend.</p>
+
+    <h2>Do you need to do anything?</h2>
+    <p><strong>For the online business: no.</strong> Eva keeps watching and searching. Use <strong>Ask Eva (real)</strong> below if you want a real reply — Submit stays on this page — or leave. That is the point.</p>
+  </article>
+
+  <p class="section-title">Ask Eva (real)</p>
+  <section class="real-ask" aria-label="Ask Eva for real">
+    <p class="honest"><strong>Real closed loop — not fake chat.</strong> Type below and press <strong>Submit</strong>. You stay on EvaOS. A trusted Worker accepts the Ask (owner bearer required once). Eva processes on the box and the reply lands here. This page has <em>no</em> write credentials in source. Public channel — do not put passwords, card numbers, or private emails in the question.</p>
+
+    <details class="token-setup" id="token-setup">
+      <summary>Owner token (dogfood — paste once)</summary>
+      <div class="body">
+        <p class="hint">Interim single-owner bearer. Paste the same value stored in Worker secret <code>OWNER_BEARER</code>. Saved only in this browser’s localStorage — never committed to git. Rotate if this device is shared. <strong>DOGFOOD-ACCEPTABLE · PRODUCTION-UNACCEPTABLE</strong> as long-term auth.</p>
+        <form class="compose" id="token-form" autocomplete="off">
+          <label class="sr-only" for="owner-token-input">Owner bearer token</label>
+          <input id="owner-token-input" type="password" maxlength="128" placeholder="Paste owner bearer…" spellcheck="false">
+          <button type="submit">Save token</button>
+          <button type="button" id="clear-token" class="secondary">Clear</button>
+        </form>
+        <p class="token-status" id="token-status" aria-live="polite"></p>
+      </div>
+    </details>
+
+    <form class="compose" id="real-ask-form" autocomplete="off">
+      <label class="sr-only" for="real-ask-input">Question for Eva</label>
+      <input id="real-ask-input" type="text" maxlength="240" placeholder="Ask Eva something about the business…" required>
+      <button type="submit" class="primary" id="ask-submit">Submit</button>
+    </form>
+    <p class="ask-status" id="ask-status" aria-live="polite"></p>
+    <p class="bridge">Path: EvaOS Submit → Cloudflare Worker (validates bearer · rate limit · size cap) → hidden inbox → Eva processes → outbox reply here. States: <strong>SENT</strong> / <strong>PROCESSING</strong> / <strong>ANSWERED</strong> / <strong>FAILED</strong>. No GitHub button as primary UX. Self-tests labeled.</p>
+
+    <p class="local-ask-label">Pending + replies</p>
+    <div class="pending" id="pending" aria-live="polite"></div>
+    <div class="threads" id="threads" aria-live="polite">
+      <p class="threads-empty" id="threads-empty">Loading replies…</p>
+    </div>
+  </section>
+
+  <p class="section-title">Quick facts (local snapshot)</p>
+  <section class="ask" aria-label="Local snapshot answers">
+    <p class="honest"><strong>Still not live Eva.</strong> These chips answer only from the snapshot on this page — instant, offline, unchanged from v0.3. For a real reply, use Ask Eva (real) Submit above.</p>
+
+    <div class="chips" role="group" aria-label="Common owner questions">
+      <button type="button" class="chip" data-intent="working">What are you working on?</button>
+      <button type="button" class="chip" data-intent="money">Why no money yet?</button>
+      <button type="button" class="chip" data-intent="park">Why park ListingLift?</button>
+      <button type="button" class="chip" data-intent="approve">What if I approve?</button>
+      <button type="button" class="chip" data-intent="risks">What are the risks?</button>
+      <button type="button" class="chip" data-intent="next">What’s next?</button>
+      <button type="button" class="chip" data-intent="kill">Why kill those ideas?</button>
+      <button type="button" class="chip" data-intent="needme">Do you need me?</button>
+    </div>
+
+    <form class="compose" id="ask-form" autocomplete="off">
+      <label class="sr-only" for="ask-input">Your question</label>
+      <input id="ask-input" type="text" maxlength="200" placeholder="Or type a short local question…">
+      <button type="submit">Answer locally</button>
+    </form>
+
+    <div class="answer" id="answer" aria-live="polite">
+      <p class="q" id="answer-q"></p>
+      <div class="a" id="answer-a"></div>
+      <p class="tag">From snapshot · not a live reply</p>
+    </div>
+  </section>
+
+  <p class="section-title">Approvals</p>
+  <div class="empty" aria-label="No pending approvals">
+    <strong>Nothing needs you</strong>
+    <p class="hint">When Eva needs a yes or no, one simple card will show here — what, why, max cost, risk, and what happens if you approve. Approve buttons are still not wired (empty queue — no theater).</p>
+  </div>
+
+  <details class="more">
+    <summary>What an approval card looks like</summary>
+    <div class="body">
+      <div class="card">
+        <h3>Example only — not a live ask</h3>
+        <dl>
+          <dt>What</dt><dd>Eva wants to do one specific consequential thing.</dd>
+          <dt>Why</dt><dd>One plain sentence.</dd>
+          <dt>Max cost</dt><dd>$0 (or a hard dollar cap).</dd>
+          <dt>Risk</dt><dd>The important downside, in plain language.</dd>
+          <dt>If approved</dt><dd>Eva does it. You do not operate the tools.</dd>
+        </dl>
+        <div class="actions">
+          <button type="button" disabled>Approve</button>
+          <button type="button" disabled>Reject</button>
+          <p class="hint">Buttons do not execute in v0.5. Real decisions still happen with Eva until approvals are the next loop.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Last real yes (already done)</h3>
+        <dl>
+          <dt>What</dt><dd>One soft partner introduction for ListingLift.</dd>
+          <dt>Why</dt><dd>Cheap last expose before parking active investment.</dd>
+          <dt>Max cost</dt><dd>$0</dd>
+          <dt>Risk</dt><dd>Low. One note, not a blast. Address omitted on this public page.</dd>
+          <dt>Result</dt><dd>Sent 2026-09-30. You need do nothing now.</dd>
+        </dl>
+      </div>
+    </div>
+  </details>
+
+  <p class="section-title">More detail</p>
+
+  <details class="more">
+    <summary>Money — sparse and honest</summary>
+    <div class="body">
+      <p><strong>$0</strong> cash collected from strangers. First goal is $100. Not there.</p>
+      <ul>
+        <li>Stranger customers: <strong>0</strong></li>
+        <li>ListingLift price: <strong>$39</strong> · paid orders: <strong>0</strong></li>
+        <li>Ads: <strong>$0</strong> · refunds: <strong>$0</strong></li>
+        <li>Margin / cost to acquire: <strong>unknown</strong> — not guessed</li>
+      </ul>
+      <p class="hint">No forecast and no “time to $100” chart. Those would be invented.</p>
+    </div>
+  </details>
+
+  <details class="more">
+    <summary>What Eva is doing / not doing</summary>
+    <div class="body">
+      <p><strong>Doing</strong></p>
+      <ul>
+        <li>Passive watch on ListingLift through about Oct 13 (partner reply if any, the emails that arrived, whether anyone pays).</li>
+        <li>Keeping the public page and checkout up.</li>
+        <li>Searching for the next business idea in the background.</li>
+        <li>Processing allowlisted owner Asks from the trusted ingress for this EvaOS loop (on-demand).</li>
+      </ul>
+      <p><strong>Not doing</strong></p>
+      <ul>
+        <li>No new cold email.</li>
+        <li>No second channel invented to rescue ListingLift.</li>
+        <li>No domain, mailbox, or ad purchases for this.</li>
+      </ul>
+      <p><strong>On the shelf (not started)</strong></p>
+      <p>Help small food manufacturers assemble audit paperwork (records check, not food-safety advice). No contact. No spend. Waits until ListingLift’s window is read honestly.</p>
+    </div>
+  </details>
+
+  <details class="more">
+    <summary>Older items still blank in the approval file</summary>
+    <div class="body">
+      <p class="hint">These are from the owner approval file. Several were later paused. This is the file, not a fresh ask from Eva about the online bet. If you already handled something, the file may be behind.</p>
+      <ul>
+        <li><strong>VA hiring replies</strong> (your cleaning business). Deadline was Tue Sep 29; interviews were on the calendar for Wed Sep 30. Decision still blank in the file.</li>
+        <li><strong>About $10 OpenAI sandbox credit.</strong> Card deadline was today. Nonessential purchases were paused Sep 29. This page is not asking you to spend.</li>
+        <li>Home-services cold email send setup — paused. Do not send.</li>
+        <li>Company name / domain / phone purchases — paused. Do not buy.</li>
+        <li>Booking software and phone system for the cleaning business — deferred; not blocking today’s online bet.</li>
+        <li>Real prices and ZIP codes — $0, useful when convenient; placeholders in use.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="more">
+    <summary>Stopped or killed earlier</summary>
+    <div class="body">
+      <ul>
+        <li>Cold email for ListingLift — stopped (delivery), not a finished demand result.</li>
+        <li>Reddit post — removed by Reddit; not a clean public test.</li>
+        <li>Contractor quote-follow-up product — killed before outreach (weak beachhead).</li>
+        <li>Backer-update pack, escape-room weekday pack, bid-watch PDF — killed (category spend ≠ our SKU).</li>
+        <li>Free Gmail as the way to reach strangers — killed as a channel capability.</li>
+      </ul>
+    </div>
+  </details>
+
+  <footer class="note">
+    Snapshot copied from org files at build time, 2026-09-30 ~11:55 CT.<br>
+    <strong>Ask Eva (real)</strong> uses GitHub Issues + committed outbox — no secrets in this page.<br>
+    Local chips stay snapshot-only. Approvals still do not execute.<br>
+    Public page: personal email addresses omitted on purpose.<br>
+    Prior: <a href="https://evaisawesome2025.github.io/evaos-v04/">0.3</a> ·
+    <a href="https://evaisawesome2025.github.io/evaos-v02/">0.2</a> ·
+    <a href="https://evaisawesome2025.github.io/evaos-v01/">0.1</a>
+  </footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# GitHub logins Eva will answer for owner-ask Issues (one per line).
+# Worker-created Issues are authored by the PAT user (Evaisawesome2025) after
+# the Worker validates the owner bearer — that is the trusted boundary.
+# Comments (#) and blank lines ignored.
+Evaisawesome2025

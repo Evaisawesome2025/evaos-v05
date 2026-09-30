@@ -1,0 +1,10 @@
+# EvaOS v0.5 Ask ingress — Cloudflare Worker (free tier)
+# Secrets (set via `wrangler secret put`, NEVER commit):
+#   OWNER_BEARER  — single-owner dogfood bearer (Glen pastes same into EvaOS localStorage)
+#   GH_PAT        — fine-grained PAT: Issues write on Evaisawesome2025/evaos-v05 only
+name = "evaos-v05-ask"
+main = "src/index.js"
+compatibility_date = "2026-09-30"
+workers_dev = true
+
+# Free tier: no paid routes, no custom domain required for dogfood.
