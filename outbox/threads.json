@@ -1,9 +1,31 @@
 {
   "version": "0.5",
-  "updated_ct": "2026-09-30T12:20-05:00",
+  "updated_ct": "2026-09-30T18:03-05:00",
   "channel": "evaos-v05-worker-owner-ask",
   "note": "Answers committed by Eva after processing allowlisted owner-ask Issues created by the trusted Worker ingress. Public and sanitized. No transport URLs required for owner UX.",
   "threads": [
+    {
+      "intent_id": "792787c8def1aaa9c6d40fd38101f9b2",
+      "status": "ANSWERED",
+      "issue_number": 11,
+      "author": "Evaisawesome2025",
+      "question": "DO YOU WORK NOW?",
+      "answer_text": "Received. $0; LL parked (watch ~Oct 13); OI continues; no online yes/no waiting. Spend/approve not auto-executed here.",
+      "answer_html": "<p>Eva received your question. Short honest status: stranger cash <strong>$0</strong>; ListingLift parked after partner note (watch to ~Oct 13); OI continues; nothing needs your yes/no on the online bet right now.</p><p>Spend/approve is not auto-executed from this Ask channel.</p>",
+      "answered_ct": "2026-09-30T18:03-05:00",
+      "kind": "owner"
+    },
+    {
+      "intent_id": "904e16dc83f16d27a6742b9558b5111e",
+      "status": "ANSWERED",
+      "issue_number": 12,
+      "author": "Evaisawesome2025",
+      "question": "HOW IS THE BUSINESS DOING?",
+      "answer_text": "Doing: LL watch ~Oct 13; page up; OI continues. Not: cold, rescue channels, spend.",
+      "answer_html": "<p><strong>Doing:</strong> passive watch on ListingLift to ~Oct 13; keep page/checkout up; search for the next honest bet (OI continues).</p><p><strong>Not doing:</strong> new cold email, rescue channels, or spend.</p>",
+      "answered_ct": "2026-09-30T18:03-05:00",
+      "kind": "owner"
+    },
     {
       "intent_id": "4cc48d93e937d64178a04859172a479a",
       "status": "ANSWERED",
