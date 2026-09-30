@@ -177,7 +177,7 @@
       el.textContent = "Access code saved on this device. Ready to Send.";
       if (setup) setup.open = false;
     } else {
-      el.textContent = "No access code yet — expand and paste before Send.";
+      el.textContent = "Paste your access code here before Send.";
       if (setup) setup.open = true;
     }
   }
