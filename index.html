@@ -10,12 +10,11 @@
 <div class="shell">
 
   <div class="brand">
-    <span>EvaOS · version 0.5</span>
-    <a href="https://evaisawesome2025.github.io/evaos-v04/">prior 0.4</a>
+    <span>EvaOS</span>
   </div>
 
   <section class="attention" aria-label="Attention">
-    <p class="label">Nothing needs you</p>
+    <p class="label">Needs you · clear</p>
     <h1>Eva is working. You’re clear.</h1>
     <p>No owner decision is waiting on the online business right now.</p>
   </section>
@@ -55,7 +54,7 @@
       <li>ListingLift moved from “keep pushing” to <strong>park and watch</strong>.</li>
       <li>Attention shifted to finding the next honest bet. That search did not pause.</li>
       <li>Nothing was killed yet. Killing needs a clearer “nobody wants it” signal than we have.</li>
-      <li><strong>New in 0.5:</strong> Ask Eva <em>inside</em> EvaOS — type, press Submit, stay on this page. Reply shows up here when Eva answers.</li>
+      <li>You can <strong>message Eva here</strong> — type, send, stay on this page. A real reply shows up when Eva answers (she is on-demand, not always-on).</li>
     </ul>
 
     <h2>What was learned</h2>
@@ -70,17 +69,17 @@
     <p>Read the one partner note honestly (a reply, a share, or silence). Watch whether anyone pays $39. Keep looking for the next business in the background. Do not invent new ListingLift channels. Do not spend.</p>
 
     <h2>Do you need to do anything?</h2>
-    <p><strong>For the online business: no.</strong> Eva keeps watching and searching. Use <strong>Ask Eva (real)</strong> below if you want a real reply — Submit stays on this page — or leave. That is the point.</p>
+    <p><strong>For the online business: no.</strong> Eva keeps watching and searching. Message Eva below if you want a real reply — or leave. That is the point.</p>
   </article>
 
-  <p class="section-title">Ask Eva (real)</p>
-  <section class="real-ask" aria-label="Ask Eva for real">
-    <p class="honest"><strong>Real Ask — not fake chat.</strong> Type a short business question and press <strong>Submit</strong>. You stay on this page. Eva answers for real; the reply appears below. One-time setup: paste the access code Eva gave you (expand below). Public page — do not put passwords, card numbers, or private emails in the question.</p>
+  <p class="section-title">Message Eva</p>
+  <section class="real-ask" aria-label="Message Eva">
+    <p class="honest">One real channel. Not fake chat. Short business questions only. Public page — no passwords, card numbers, or private emails. Eva answers when she next processes (on-demand, not always-on).</p>
 
     <details class="token-setup" id="token-setup">
       <summary>Access code (paste once on this device)</summary>
       <div class="body">
-        <p class="hint">This is a single-owner access code for dogfood — not a password for email or banking. Paste the value Eva handed you for this page. It stays only in this browser until you Clear. If someone else uses this device, Clear when you leave.</p>
+        <p class="hint">Single-owner dogfood access — not an email or bank password. Paste the value Eva handed you for this page. Stays only in this browser until you Clear. If someone else uses this device, Clear when you leave.</p>
         <form class="compose" id="token-form" autocomplete="off">
           <label class="sr-only" for="owner-token-input">Owner access code</label>
           <input id="owner-token-input" type="password" maxlength="128" placeholder="Paste access code…" spellcheck="false">
@@ -92,90 +91,18 @@
     </details>
 
     <form class="compose" id="real-ask-form" autocomplete="off">
-      <label class="sr-only" for="real-ask-input">Question for Eva</label>
-      <input id="real-ask-input" type="text" maxlength="240" placeholder="Ask Eva something about the business…" required>
-      <button type="submit" class="primary" id="ask-submit">Submit</button>
+      <label class="sr-only" for="real-ask-input">Message for Eva</label>
+      <input id="real-ask-input" type="text" maxlength="240" placeholder="Message Eva…" required>
+      <button type="submit" class="primary" id="ask-submit">Send</button>
     </form>
     <p class="ask-status" id="ask-status" aria-live="polite"></p>
-    <p class="bridge">You will see <strong>SENT</strong>, then <strong>PROCESSING</strong>, then <strong>ANSWERED</strong> (or <strong>FAILED</strong>). Eva is not always-on yet — she processes Asks on the box; this page refreshes the reply when it is ready. Self-tests are labeled.</p>
-    <details class="more bridge-detail">
-      <summary>How this works (optional)</summary>
-      <div class="body">
-        <p class="hint">Submit goes to a trusted gate that checks your access code, size, and rate. Eva processes on the box and publishes a sanitized reply here. Plumbing stays off the main path — you do not open issue trackers or cloud consoles to Ask.</p>
-      </div>
-    </details>
+    <p class="bridge">You’ll see SENT → PROCESSING → ANSWERED (or FAILED). Reply appears below when ready.</p>
 
-    <p class="local-ask-label">Pending + replies</p>
     <div class="pending" id="pending" aria-live="polite"></div>
     <div class="threads" id="threads" aria-live="polite">
       <p class="threads-empty" id="threads-empty">Loading replies…</p>
     </div>
   </section>
-
-  <p class="section-title">Quick facts (local snapshot)</p>
-  <section class="ask" aria-label="Local snapshot answers">
-    <p class="honest"><strong>Still not live Eva.</strong> These chips answer only from the snapshot on this page — instant, offline, unchanged from v0.3. For a real reply, use Ask Eva (real) Submit above.</p>
-
-    <div class="chips" role="group" aria-label="Common owner questions">
-      <button type="button" class="chip" data-intent="working">What are you working on?</button>
-      <button type="button" class="chip" data-intent="money">Why no money yet?</button>
-      <button type="button" class="chip" data-intent="park">Why park ListingLift?</button>
-      <button type="button" class="chip" data-intent="approve">What if I approve?</button>
-      <button type="button" class="chip" data-intent="risks">What are the risks?</button>
-      <button type="button" class="chip" data-intent="next">What’s next?</button>
-      <button type="button" class="chip" data-intent="kill">Why kill those ideas?</button>
-      <button type="button" class="chip" data-intent="needme">Do you need me?</button>
-    </div>
-
-    <form class="compose" id="ask-form" autocomplete="off">
-      <label class="sr-only" for="ask-input">Your question</label>
-      <input id="ask-input" type="text" maxlength="200" placeholder="Or type a short local question…">
-      <button type="submit">Answer locally</button>
-    </form>
-
-    <div class="answer" id="answer" aria-live="polite">
-      <p class="q" id="answer-q"></p>
-      <div class="a" id="answer-a"></div>
-      <p class="tag">From snapshot · not a live reply</p>
-    </div>
-  </section>
-
-  <p class="section-title">Approvals</p>
-  <div class="empty" aria-label="No pending approvals">
-    <strong>Nothing needs you</strong>
-    <p class="hint">When Eva needs a yes or no, one simple card will show here — what, why, max cost, risk, and what happens if you approve. Approve buttons are still not wired (empty queue — no theater).</p>
-  </div>
-
-  <details class="more">
-    <summary>What an approval card looks like</summary>
-    <div class="body">
-      <div class="card">
-        <h3>Example only — not a live ask</h3>
-        <dl>
-          <dt>What</dt><dd>Eva wants to do one specific consequential thing.</dd>
-          <dt>Why</dt><dd>One plain sentence.</dd>
-          <dt>Max cost</dt><dd>$0 (or a hard dollar cap).</dd>
-          <dt>Risk</dt><dd>The important downside, in plain language.</dd>
-          <dt>If approved</dt><dd>Eva does it. You do not operate the tools.</dd>
-        </dl>
-        <div class="actions">
-          <button type="button" disabled>Approve</button>
-          <button type="button" disabled>Reject</button>
-          <p class="hint">Buttons do not execute in v0.5. Real decisions still happen with Eva until approvals are the next loop.</p>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Last real yes (already done)</h3>
-        <dl>
-          <dt>What</dt><dd>One soft partner introduction for ListingLift.</dd>
-          <dt>Why</dt><dd>Cheap last expose before parking active investment.</dd>
-          <dt>Max cost</dt><dd>$0</dd>
-          <dt>Risk</dt><dd>Low. One note, not a blast. Address omitted on this public page.</dd>
-          <dt>Result</dt><dd>Sent 2026-09-30. You need do nothing now.</dd>
-        </dl>
-      </div>
-    </div>
-  </details>
 
   <p class="section-title">More detail</p>
 
@@ -201,7 +128,7 @@
         <li>Passive watch on ListingLift through about Oct 13 (partner reply if any, the emails that arrived, whether anyone pays).</li>
         <li>Keeping the public page and checkout up.</li>
         <li>Searching for the next business idea in the background.</li>
-        <li>Processing allowlisted owner Asks from the trusted ingress for this EvaOS loop (on-demand).</li>
+        <li>Answering owner messages from this page when she next processes (on-demand).</li>
       </ul>
       <p><strong>Not doing</strong></p>
       <ul>
@@ -242,14 +169,60 @@
     </div>
   </details>
 
+  <p class="section-title">System</p>
+
+  <details class="more">
+    <summary>Diagnostics (quiet)</summary>
+    <div class="body">
+      <p><strong>How Message Eva works</strong></p>
+      <p class="hint">Send goes to a trusted gate that checks your access code, size, and rate. Eva processes on the box and publishes a sanitized reply here. Plumbing is not the product — you do not open issue trackers or cloud consoles to talk to Eva.</p>
+      <p class="hint">States are honest: SENT / PROCESSING / ANSWERED / FAILED. No fake Eva replies. Approvals are not wired on this page (no fake Approve). Always-on Eva is not built.</p>
+
+      <p><strong>Needs you — when empty</strong></p>
+      <p class="hint">When something needs a yes/no, one simple card would show at the top: what, why, max cost, risk, if approved. Right now the queue is empty — no theater, no disabled Approve buttons in the main view.</p>
+      <div class="card quiet-example">
+        <h3>Example shape only — not live</h3>
+        <dl>
+          <dt>What</dt><dd>Eva wants to do one specific consequential thing.</dd>
+          <dt>Why</dt><dd>One plain sentence.</dd>
+          <dt>Max cost</dt><dd>$0 (or a hard dollar cap).</dd>
+          <dt>Risk</dt><dd>The important downside, in plain language.</dd>
+          <dt>If approved</dt><dd>Eva does it. You do not operate the tools.</dd>
+        </dl>
+        <p class="hint">Buttons intentionally omitted here. Real decisions still happen with Eva until approvals are the next loop. Last real yes: one soft partner introduction for ListingLift ($0) — sent 2026-09-30.</p>
+      </div>
+
+      <p><strong>Offline snapshot (not live Eva)</strong></p>
+      <p class="hint">Instant answers from the facts already on this page. Not a second message channel. For a real reply, use Message Eva above.</p>
+      <div class="chips" role="group" aria-label="Offline snapshot questions">
+        <button type="button" class="chip" data-intent="working">What are you working on?</button>
+        <button type="button" class="chip" data-intent="money">Why no money yet?</button>
+        <button type="button" class="chip" data-intent="park">Why park ListingLift?</button>
+        <button type="button" class="chip" data-intent="needme">Do you need me?</button>
+        <button type="button" class="chip" data-intent="next">What’s next?</button>
+        <button type="button" class="chip" data-intent="risks">What are the risks?</button>
+      </div>
+      <div class="answer" id="answer" aria-live="polite">
+        <p class="q" id="answer-q"></p>
+        <div class="a" id="answer-a"></div>
+        <p class="tag">From snapshot · not a live reply</p>
+      </div>
+
+      <p><strong>Prototypes &amp; build notes</strong></p>
+      <p class="hint">
+        Prior surfaces kept live for reference:
+        <a href="https://evaisawesome2025.github.io/evaos-v04/">0.4</a> ·
+        <a href="https://evaisawesome2025.github.io/evaos-v03/">0.3</a> ·
+        <a href="https://evaisawesome2025.github.io/evaos-v02/">0.2</a> ·
+        <a href="https://evaisawesome2025.github.io/evaos-v01/">0.1</a>
+      </p>
+      <p class="hint">Loop selftests are labeled in storage and hidden from the owner reply list. Snapshot copied from org files at build time. No secrets in this page.</p>
+    </div>
+  </details>
+
   <footer class="note">
-    Snapshot copied from org files at build time, 2026-09-30 ~11:55 CT.<br>
-    <strong>Ask Eva (real)</strong> uses GitHub Issues + committed outbox — no secrets in this page.<br>
-    Local chips stay snapshot-only. Approvals still do not execute.<br>
-    Public page: personal email addresses omitted on purpose.<br>
-    Prior: <a href="https://evaisawesome2025.github.io/evaos-v04/">0.3</a> ·
-    <a href="https://evaisawesome2025.github.io/evaos-v02/">0.2</a> ·
-    <a href="https://evaisawesome2025.github.io/evaos-v01/">0.1</a>
+    EvaOS · one owner · one business · one message surface.<br>
+    Public page: personal email addresses omitted on purpose.
   </footer>
 
 </div>

@@ -1,10 +1,10 @@
-# EvaOS v0.5 — in-product Ask (real)
+# EvaOS v0.5 — Message Eva (real)
 
 **Live:** https://evaisawesome2025.github.io/evaos-v05/  
-**Prior (kept):** [v0.4](https://evaisawesome2025.github.io/evaos-v04/) · [v0.3](https://evaisawesome2025.github.io/evaos-v03/) · [v0.2](https://evaisawesome2025.github.io/evaos-v02/) · [v0.1](https://evaisawesome2025.github.io/evaos-v01/)
+**Cleanup:** subtractive V0.5 — one primary message surface (see architecture `V05_CLEANUP_REPORT.md`)
 
-Owner Ask (real, in-product): EvaOS Submit → Cloudflare Worker (bearer) → hidden Issue inbox → Eva `process_owner_asks.sh` → `outbox/threads.json` → Pages.
+Owner → Message Eva (Send) → trusted ingress → Eva process → sanitized reply on this page.
 
-No secrets in client JS. $0 (CF Workers free tier). No new agent. GitHub is plumbing, not owner UX.
+No secrets in client JS. $0. GitHub/Worker/outbox are plumbing, not owner UX. Dogfood access code in localStorage — not production auth.
 
-Dogfood auth: owner bearer in browser localStorage (paste once) — **not** long-term production auth.
+Prior prototypes kept: [0.4](https://evaisawesome2025.github.io/evaos-v04/) · [0.3](https://evaisawesome2025.github.io/evaos-v03/) · [0.2](https://evaisawesome2025.github.io/evaos-v02/) · [0.1](https://evaisawesome2025.github.io/evaos-v01/)

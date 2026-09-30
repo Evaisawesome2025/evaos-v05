@@ -1,4 +1,4 @@
-/* EvaOS v0.5 — local snapshot Q&A + in-product Ask via Worker. No secrets in source. */
+/* EvaOS v0.5 cleanup — one Message Eva surface + offline snapshot chips in System. No secrets. */
 (function () {
   "use strict";
 
@@ -35,8 +35,8 @@
       q: "What if I approve?",
       html:
         "<p>Right now there is <strong>nothing waiting for a yes or no</strong> on the online business. If an approval card appeared, it would say: what Eva wants to do, why, max cost, risk, and what happens if you approve.</p>" +
-        "<p><strong>If you approved:</strong> Eva would do that one consequential thing. You would not operate the tools. The card’s “if approved” line is the promise.</p>" +
-        "<p><strong>On this page:</strong> Approve / Reject buttons are sample-only. They do not execute. Real decisions still happen with Eva until this surface is wired.</p>" +
+        "<p><strong>If you approved:</strong> Eva would do that one consequential thing. You would not operate the tools.</p>" +
+        "<p>Approve / Reject is not wired on this page (no fake buttons). Real decisions still happen with Eva until this surface is next.</p>" +
         "<p>Last real yes: one soft partner introduction for ListingLift ($0). Sent 2026-09-30. Done.</p>"
     },
     risks: {
@@ -74,7 +74,7 @@
       html:
         "<p><strong>For the online business: no.</strong> Nothing needs an owner yes/no right now.</p>" +
         "<p>Eva keeps watching ListingLift and searching for the next bet. Come back for the next Catch Me Up, or when an approval card appears.</p>" +
-        "<p>Older items still blank in the approval file (VA hiring, small sandbox credit, deferred tools) are behind the “More detail” section — they are the file, not a fresh ask about today’s online bet. This page is not asking you to spend.</p>"
+        "<p>Older items still blank in the approval file are under More detail — they are the file, not a fresh ask about today’s online bet. This page is not asking you to spend.</p>"
     },
     catchup: {
       q: "Catch me up",
@@ -90,8 +90,8 @@
     direction: {
       q: "I don’t like this direction",
       html:
-        "<p>This page cannot change course. It only explains the current snapshot.</p>" +
-        "<p>If you want a different direction — pause the search, un-park cold, kill ListingLift, or start the shelf idea — say so to Eva the usual way. That becomes an owner decision with a clear packet (what / why / cost / risk), not a chat guess on a public page.</p>" +
+        "<p>This offline snapshot cannot change course. It only explains the current facts.</p>" +
+        "<p>If you want a different direction — pause the search, un-park cold, kill ListingLift, or start the shelf idea — <strong>Message Eva</strong> above. That becomes an owner decision with a clear packet (what / why / cost / risk), not a chat guess on a public page.</p>" +
         "<p>Right now Eva’s operating assumption is: park ListingLift after the partner note, watch to ~Oct 13, keep Opportunity Intelligence running, spend $0.</p>"
     },
     spend: {
@@ -102,36 +102,11 @@
     }
   };
 
-  var KEYWORDS = [
-    { keys: ["catch", "catch me up", "summary", "brief", "what happened"], id: "catchup" },
-    { keys: ["working", "doing", "what are you", "activity", "busy"], id: "working" },
-    { keys: ["money", "revenue", "paid", "customers", "sales", "$0", "cash", "why no"], id: "money" },
-    { keys: ["park", "listinglift", "listing lift", "why park", "paused"], id: "park" },
-    { keys: ["approve", "approval", "what if", "reject", "yes or no"], id: "approve" },
-    { keys: ["risk", "risks", "danger", "worry", "afraid"], id: "risks" },
-    { keys: ["next", "what next", "then", "upcoming", "plan"], id: "next" },
-    { keys: ["kill", "killed", "stop", "graveyard", "earlier ideas"], id: "kill" },
-    { keys: ["need me", "need you", "do i", "anything", "clear"], id: "needme" },
-    { keys: ["direction", "don't like", "dont like", "hate", "wrong", "another"], id: "direction" },
-    { keys: ["spend", "cap", "budget", "ads", "cost", "pay"], id: "spend" }
-  ];
-
-  function matchIntent(text) {
-    var t = (text || "").toLowerCase().trim();
-    if (!t) return null;
-    for (var i = 0; i < KEYWORDS.length; i++) {
-      var row = KEYWORDS[i];
-      for (var j = 0; j < row.keys.length; j++) {
-        if (t.indexOf(row.keys[j]) !== -1) return row.id;
-      }
-    }
-    return null;
-  }
-
   function showAnswer(id) {
     var entry = ANSWERS[id];
     if (!entry) return;
     var box = document.getElementById("answer");
+    if (!box) return;
     document.getElementById("answer-q").textContent = entry.q;
     document.getElementById("answer-a").innerHTML = entry.html;
     box.classList.add("show");
@@ -144,37 +119,13 @@
     }
   }
 
-  function showUnknown(raw) {
-    var box = document.getElementById("answer");
-    document.getElementById("answer-q").textContent = raw ? ("About: " + raw.slice(0, 80)) : "No match";
-    document.getElementById("answer-a").innerHTML =
-      "<p>I only answer from this snapshot’s facts. Try a chip above, or ask about: what Eva is doing, money, why park, approvals, risks, what’s next, kills, or whether you are needed.</p>" +
-      "<p>This local box is not live Eva. For a real reply, use <strong>Ask Eva (real)</strong> Submit above (stays on EvaOS).</p>";
-    box.classList.add("show");
-    document.querySelectorAll(".chip").forEach(function (c) {
-      c.classList.remove("active");
-    });
-  }
-
   document.querySelectorAll(".chip").forEach(function (btn) {
     btn.addEventListener("click", function () {
       showAnswer(btn.getAttribute("data-intent"));
     });
   });
 
-  var form = document.getElementById("ask-form");
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var input = document.getElementById("ask-input");
-    var raw = (input.value || "").trim();
-    var id = matchIntent(raw);
-    if (id) showAnswer(id);
-    else showUnknown(raw);
-  });
-
-
-
-  /* --- Real Ask: POST to Cloudflare Worker (bearer in localStorage only) --- */
+  /* --- Real Message Eva: POST to Cloudflare Worker (bearer in localStorage only) --- */
   // Worker URL is public (not a secret). Bearer never belongs in this file.
   var WORKER_URL = (window.EVAOS_WORKER_URL || "https://evaos-v05-ask.stump-lawyer-880.workers.dev");
   var OUTBOX_URL = "outbox/threads.json";
@@ -223,10 +174,10 @@
     var setup = document.getElementById("token-setup");
     if (!el) return;
     if (getToken()) {
-      el.textContent = "Access code saved on this device. Ready to Submit.";
+      el.textContent = "Access code saved on this device. Ready to Send.";
       if (setup) setup.open = false;
     } else {
-      el.textContent = "No access code yet — expand and paste before Submit.";
+      el.textContent = "No access code yet — expand and paste before Send.";
       if (setup) setup.open = true;
     }
   }
@@ -269,17 +220,16 @@
     var e = String(err || "");
     if (message) return String(message);
     if (e === "unauthorized") return "That access code was not accepted. Check you pasted the full code.";
-    if (e === "rate_limited") return "Too many Asks this hour. Try again later.";
-    if (e === "empty_body") return "Type a short question first.";
+    if (e === "rate_limited") return "Too many messages this hour. Try again later.";
+    if (e === "empty_body") return "Type a short message first.";
     if (e === "body_too_long") return "Keep it under 240 characters.";
-    if (e === "refused_credential_keywords") return "Public channel — do not put passwords, tokens, or card data in Asks.";
-    if (e === "origin_denied") return "This page origin is not allowed to Submit.";
-    if (e === "write_failed" || e === "ingress_not_configured") return "Ask could not be accepted right now. Try again in a minute.";
-    if (e === "network_or_worker_unreachable") return "Could not reach the Ask service. Check connection or try again.";
-    if (e === "request_failed") return "Ask failed. Try again.";
-    return e || "Ask failed.";
+    if (e === "refused_credential_keywords") return "Public channel — do not put passwords, tokens, or card data here.";
+    if (e === "origin_denied") return "This page origin is not allowed to Send.";
+    if (e === "write_failed" || e === "ingress_not_configured") return "Message could not be accepted right now. Try again in a minute.";
+    if (e === "network_or_worker_unreachable") return "Could not reach Eva’s message service. Check connection or try again.";
+    if (e === "request_failed") return "Send failed. Try again.";
+    return e || "Send failed.";
   }
-
 
   function renderPending() {
     var root = document.getElementById("pending");
@@ -295,7 +245,6 @@
         '<article class="pend">' +
         '<p class="st">' +
         esc(p.status || "SENT") +
-        (p.kind === "selftest" ? " · SELFTEST" : "") +
         (p.at ? " · " + esc(p.at) : "") +
         "</p>" +
         '<p class="q">' +
@@ -304,9 +253,9 @@
         (p.error
           ? '<p class="hint">' + esc(p.error) + "</p>"
           : p.status === "PROCESSING"
-            ? '<p class="hint">Waiting for Eva — she processes Asks on the box (not always-on). This list updates when the reply is ready.</p>'
+            ? '<p class="hint">Waiting for Eva — she processes messages on the box (not always-on). This updates when the reply is ready.</p>'
             : p.status === "SENT"
-              ? '<p class="hint">Accepted. Eva will answer when she next processes Asks.</p>'
+              ? '<p class="hint">Accepted. Eva will answer when she next processes.</p>'
               : "") +
         "</article>";
     });
@@ -319,15 +268,6 @@
     });
     list.unshift(entry);
     savePending(list);
-    renderPending();
-  }
-
-  function removePending(intentId) {
-    savePending(
-      loadPending().filter(function (p) {
-        return p.intent_id !== intentId;
-      })
-    );
     renderPending();
   }
 
@@ -378,7 +318,7 @@
           }
           var intentId = res.data.intent_id;
           realInput.value = "";
-          setAskStatus("SENT — Ask accepted. Waiting for Eva…", "sent");
+          setAskStatus("SENT — accepted. Waiting for Eva…", "sent");
           upsertPending({
             intent_id: intentId,
             question: q,
@@ -386,7 +326,6 @@
             kind: res.data.kind,
             at: new Date().toLocaleString(),
           });
-          // Flip to PROCESSING after a beat (honest: accepted, not yet answered)
           setTimeout(function () {
             var list = loadPending();
             list.forEach(function (p) {
@@ -396,7 +335,6 @@
             renderPending();
             setAskStatus("PROCESSING — waiting for Eva (on-demand, not always-on).", "processing");
           }, 800);
-          // Start polling outbox sooner
           pollOutbox(true);
         })
         .catch(function () {
@@ -415,20 +353,26 @@
     });
   }
 
+  function isOwnerThread(t) {
+    if (!t) return false;
+    if (t.kind === "selftest") return false;
+    return true;
+  }
+
   function renderThreads(data) {
     var root = document.getElementById("threads");
     if (!root) return;
-    var threads = (data && data.threads) || [];
-    // Match pending → ANSWERED
+    var all = (data && data.threads) || [];
+    var threads = all.filter(isOwnerThread);
     var pending = loadPending();
     var answeredIds = {};
-    threads.forEach(function (t) {
+    all.forEach(function (t) {
       if (t.intent_id) answeredIds[t.intent_id] = true;
     });
     var still = [];
     pending.forEach(function (p) {
       if (p.intent_id && answeredIds[p.intent_id]) {
-        /* drop — shown in threads as ANSWERED */
+        /* drop — answered */
       } else if (p.status === "FAILED") {
         still.push(p);
       } else {
@@ -446,12 +390,11 @@
 
     if (!threads.length) {
       root.innerHTML =
-        '<p class="threads-empty" id="threads-empty">No real replies yet. Submit an Ask above — you stay on EvaOS.</p>';
+        '<p class="threads-empty" id="threads-empty">No replies yet. Send a message above — you stay here.</p>';
       return;
     }
     var html = "";
     threads.forEach(function (t) {
-      var kind = t.kind === "selftest" ? " · SELFTEST (not owner)" : "";
       var st = " · " + esc(t.status || "ANSWERED");
       var answerHtml = (t.answer_html || esc(t.answer_text || "")).trim();
       html +=
@@ -459,7 +402,6 @@
         '<p class="meta">' +
         esc(t.answered_ct || "") +
         st +
-        kind +
         "</p>" +
         '<p class="q">' +
         esc(t.question || "") +
@@ -484,7 +426,7 @@
         var root = document.getElementById("threads");
         if (root && !root.querySelector(".thread")) {
           root.innerHTML =
-            '<p class="threads-empty">Could not load outbox yet (Pages may still be building). Refresh in a minute.</p>';
+            '<p class="threads-empty">Replies not loaded yet. Refresh in a minute.</p>';
         }
       });
     var need =

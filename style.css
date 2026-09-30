@@ -521,3 +521,16 @@ button.secondary {
   border: 1px solid var(--line, #d5d0c6);
   color: var(--ink, #2a2822);
 }
+
+/* v0.5 cleanup — diagnostics example card quieter */
+.quiet-example {
+  margin-top: 10px;
+  background: var(--soft);
+}
+.quiet-example h3 {
+  font-size: 15px;
+  color: var(--muted);
+}
+.real-ask .bridge {
+  margin-bottom: 12px;
+}
