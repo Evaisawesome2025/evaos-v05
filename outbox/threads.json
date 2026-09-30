@@ -5,6 +5,17 @@
   "note": "Answers committed by Eva after processing allowlisted owner-ask Issues created by the trusted Worker ingress. Public and sanitized. No transport URLs required for owner UX.",
   "threads": [
     {
+      "intent_id": "4c0e7b7964102cd19382fef721906a76",
+      "status": "ANSWERED",
+      "issue_number": 14,
+      "author": "Evaisawesome2025",
+      "question": "Owner status check: confirm Eva replies on joinermill /app after outbox publish.",
+      "answer_text": "Doing: LL watch ~Oct 13; page up; OI continues. Not: cold, rescue channels, spend.",
+      "answer_html": "<p><strong>Doing:</strong> passive watch on ListingLift to ~Oct 13; keep page/checkout up; search for the next honest bet (OI continues).</p><p><strong>Not doing:</strong> new cold email, rescue channels, or spend.</p>",
+      "answered_ct": "2026-09-30T18:28-05:00",
+      "kind": "owner"
+    },
+    {
       "intent_id": "47ec5c7205cbbc01e781607f0990a6e0",
       "status": "ANSWERED",
       "issue_number": 13,
