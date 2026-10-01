@@ -68,7 +68,108 @@ for iss in issues:
     q = extract_question(iss.get("title") or "", iss.get("body") or "")
     intent_id = extract_intent_id(iss.get("body") or "")
     ql = q.lower()
-    kind = "selftest" if ("loop-selftest" in labels or "selftest" in ql or "loop check" in ql) else "owner"
+    # OBJECTIVE: prefix wins over keyword "selftest" in body (e.g. UZ_VISIBILITY_SELFTEST probes).
+    # Only an explicit loop-selftest *label* keeps Ask on the canned selftest rail.
+    is_objective = q.lstrip().upper().startswith("OBJECTIVE:")
+    kind = (
+        "selftest"
+        if (("loop-selftest" in labels and not is_objective) or ((not is_objective) and ("selftest" in ql or "loop check" in ql)))
+        else ("objective" if is_objective else "owner")
+    )
+    # User Zero objectives: do NOT canned-answer. Enqueue for org execute; leave open.
+    if is_objective:
+        intent_id = intent_id or f"issue-{iss['number']}"
+        objective_text = re.sub(r"(?i)^OBJECTIVE:\s*", "", q).strip()[:220]
+        uz_dir = Path("/home/box/business/architecture/evaos/operating/uz_objective_inbox")
+        uz_queue = uz_dir / "queue.json"
+        try:
+            uz = json.loads(uz_queue.read_text()) if uz_queue.exists() else {"version": "1", "items": []}
+        except Exception:
+            uz = {"version": "1", "items": []}
+        items = uz.get("items") or []
+        existing = next((x for x in items if x.get("intent_id") == intent_id or x.get("issue_number") == iss["number"]), None)
+        if existing:
+            if existing.get("status") in ("ANSWERED",):
+                pass
+            elif existing.get("status") not in ("PENDING_ORG", "IN_PROGRESS", "BLOCKED"):
+                existing["status"] = "RECEIVED"
+            existing["synced_ct"] = ct_now
+            existing["objective"] = objective_text
+            existing["issue_number"] = iss["number"]
+            existing["issue_url"] = iss.get("url")
+        else:
+            items.insert(0, {
+                "intent_id": intent_id,
+                "issue_number": iss["number"],
+                "issue_url": iss.get("url"),
+                "objective": objective_text,
+                "raw_question": q[:500],
+                "status": "RECEIVED",
+                "created_at_gh": iss.get("createdAt"),
+                "author": author,
+                "synced_ct": ct_now,
+                "first_seen_ct": ct_now,
+                "note": "enqueued by process_owner_asks (OBJECTIVE skip canned)",
+            })
+        uz["items"] = items
+        uz["updated_ct"] = ct_now
+        uz["note"] = (
+            "User Zero objective inbox — durable ops visibility for Glen dogfood submits. "
+            "Synced from GH owner-ask Issues with OBJECTIVE: prefix. Not public Pages. No secrets."
+        )
+        uz_dir.mkdir(parents=True, exist_ok=True)
+        uz_queue.write_text(json.dumps(uz, indent=2) + "\n")
+        # Label for GH visibility; do NOT eva-answered
+        try:
+            subprocess.check_call(
+                ["gh", "label", "create", "uz-objective", "--repo", repo,
+                 "--color", "0e4d8b", "--description", "User Zero objective — org execute, not canned Ask"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
+        try:
+            subprocess.check_call(
+                ["gh", "issue", "edit", str(iss["number"]), "--repo", repo, "--add-label", "uz-objective"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        except Exception as e:
+            print(f"WARN label uz-objective #{iss['number']}: {e}", flush=True)
+        # Interim ack comment once
+        marker = "<!-- evaos-uz-objective-ack -->"
+        try:
+            existing_comments = subprocess.check_output(
+                ["gh", "api", f"repos/{repo}/issues/{iss['number']}/comments", "--jq", ".[].body"],
+                text=True,
+            )
+        except Exception:
+            existing_comments = ""
+        if marker not in existing_comments:
+            ack = (
+                f"## Eva ACK — User Zero objective queued\n\n"
+                f"{marker}\n"
+                f"**intent_id:** `{intent_id}`\n\n"
+                f"Received. Status: **RECEIVED** in ops inbox "
+                f"`architecture/evaos/operating/uz_objective_inbox/queue.json`.\n\n"
+                f"This is **not** a canned Ask reply. Org will plan → execute → post evidence "
+                f"to the product outbox. Consequential send/spend/publish stay frozen until Approve.\n\n"
+                f"_Queued {ct_now}._\n"
+            )
+            cpath = work / f"uz_ack_{iss['number']}.md"
+            cpath.write_text(ack)
+            subprocess.check_call(
+                ["gh", "issue", "comment", str(iss["number"]), "--repo", repo, "--body-file", str(cpath)]
+            )
+        print(f"UZ_ENQUEUE #{iss['number']} intent={intent_id} (skip canned)", flush=True)
+        # Refresh human ALERT strip (best-effort)
+        try:
+            subprocess.check_call(
+                ["bash", str(uz_dir / "sync_from_gh.sh")],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            pass
+        continue
     if any(x in ql for x in ("password", "api key", "secret", "token", "credit card", "cvv")):
         answer_html = "<p><strong>Refused.</strong> Public channel — no secrets or credentials here.</p>"
         answer_text = "Refused: public channel — no secrets/credentials here."
