@@ -161,7 +161,9 @@ for iss in issues:
         and (not intent_id or t.get("intent_id") != intent_id)
     ]
     outbox["threads"].insert(0, thread)
-    product_new.append(product_thread)
+    # Product Pages: owner threads only — selftests stay on ops/v05 outbox (OVB-05)
+    if kind != "selftest":
+        product_new.append(product_thread)
     changed.append(iss["number"])
     print(f"ANSWERED #{iss['number']} kind={kind} author=@{author} intent={intent_id or '-'}", flush=True)
 
