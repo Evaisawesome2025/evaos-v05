@@ -1,0 +1,49 @@
+{
+  "objective_id": "UZ-FC-20261002-001",
+  "intent_id": "UZ-FC-20261002-001",
+  "status": "DONE",
+  "stage": "done",
+  "kind": "objective",
+  "question": "OBJECTIVE: Determine the highest-leverage action to move EvaOS toward acquiring its first real paying customer. Challenge assumptions. Evidence on disk. No contact/spend/external publish/gate enable.",
+  "answer_text": "ONE action: close the dogfood evidence loop (B1 publisher flag-OFF + this UZ PoW). Prior objective before cash: prove Objective→Evidence once — selling founding seats with an empty bay is theater. Next cash-adjacent (gated): ONE Approve to arm Helm founding-seat waitlist (design already on disk). No LL/Charles/Path2. paid_n=0.",
+  "answer_html": "<p><strong>ONE action:</strong> close the dogfood evidence loop (B1 publisher flag-OFF + this UZ PoW).</p><p><strong>Prior before cash:</strong> prove Objective→Evidence once — empty-bay founding seats are theater.</p><p><strong>Next (gated):</strong> ONE Approve to arm Helm founding-seat waitlist. No LL/Charles/Path2. paid_n=0.</p>",
+  "answered_ct": "2026-10-02T07:15-05:00",
+  "evidence": [
+    {
+      "title": "UZ-FC evidence packet (decision + PoW)",
+      "url": "/home/box/business/architecture/evaos/operating/cycles/UZ_FC_EVIDENCE_20261002.md",
+      "type": "file",
+      "opened_ct": "2026-10-02T07:15-05:00"
+    },
+    {
+      "title": "Atlas dogfood evidence publish contract",
+      "url": "/home/box/business/architecture/evaos/operating/cycles/ATLAS_DOGFOOD_EVIDENCE_PUBLISH_CONTRACT_20261002.md",
+      "type": "file",
+      "opened_ct": "2026-10-02T07:15-05:00"
+    },
+    {
+      "title": "Flag-OFF publisher module (B1)",
+      "url": "/home/box/business/architecture/evaos/operating/cycles/dogfood_evidence_publisher/README.md",
+      "type": "file",
+      "opened_ct": "2026-10-02T07:15-05:00"
+    },
+    {
+      "title": "Publisher dry-run / staging receipt",
+      "url": "/home/box/business/architecture/evaos/operating/cycles/dogfood_evidence_publisher/dry_run/",
+      "type": "dir",
+      "opened_ct": "2026-10-02T07:15-05:00"
+    },
+    {
+      "title": "Helm v0.7 dogfood (idle bay — publisher not live)",
+      "url": "https://evaisawesome2025.github.io/evaos-v06/v07/",
+      "type": "https",
+      "opened_ct": "2026-10-02T07:15-05:00"
+    },
+    {
+      "title": "Post-LL reorient memo (EVIDENCE-LOOP-CLOSE)",
+      "url": "/home/box/business/architecture/evaos/operating/cycles/EVAOS_REORIENT_POST_LL_20261002.md",
+      "type": "file",
+      "opened_ct": "2026-10-02T07:15-05:00"
+    }
+  ]
+}

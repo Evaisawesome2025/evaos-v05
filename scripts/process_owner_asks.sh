@@ -4,11 +4,16 @@
 # Ingress may be Worker (hidden) or direct Issue; owner UX is EvaOS Submit.
 # Run on Eva box (gh as Evaisawesome2025). No secrets in Pages.
 # AUDITOR PWW 1800 JOINERMILL-OUTBOX-PUBLISH — publish only NEW answered threads.
+# B1 evidence loop is separate (scripts/dogfood_evidence_publisher/). Flag
+# HELM_EVIDENCE_PUBLISH defaults unset/0. This script does not live-push Helm.
 set -euo pipefail
 
 REPO="${REPO:-Evaisawesome2025/evaos-v05}"
 PRODUCT_REPO="${PRODUCT_REPO:-Evaisawesome2025/joinermill}"
 PRODUCT_OUTBOX_PATH="${PRODUCT_OUTBOX_PATH:-app/outbox/threads.json}"
+# Live Helm outbox is not a write target of the canned Ask path.
+# Evidence publisher defaults are documented in scripts/dogfood_evidence_publisher/FLAG.md.
+# HELM_EVIDENCE_PUBLISH is left unset here (OFF).
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export EVAOS_ALLOWLIST="$ROOT/control/ALLOWLIST.txt"
 OUTBOX="$ROOT/outbox/threads.json"
@@ -360,3 +365,10 @@ else
 fi
 
 echo "Done. v05 outbox: $OUTBOX ; product: $PRODUCT_REPO:$PRODUCT_OUTBOX_PATH"
+
+# B1: terminal dogfood evidence only. Flag unset/0 → staging or skip.
+# Never passes the gage-enable switch. Does not write Helm v07 or change
+# the joinermill dual-write above. Canned OBJECTIVE / selftest do not qualify.
+"$ROOT/scripts/dogfood_evidence_publisher/run_from_asks.sh" \
+  "${UZ_INBOX_PATH:-/home/box/business/architecture/evaos/operating/uz_objective_inbox/queue.json}" \
+  "$OUTBOX"
