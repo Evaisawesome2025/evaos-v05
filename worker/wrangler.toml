@@ -10,10 +10,8 @@ workers_dev = true
 # Free tier: no paid routes, no custom domain required for dogfood.
 # No Stripe, no charge, no capture. Payment FAIL is not lifted. Ready is not claimed.
 #
-# Hard-stop ledger (Workers KV). Not provisioned in this packet — do not invent an id.
-# Until METERING_KV is bound, billable POST /intent fail-closes (no GitHub write).
-# Non-billable DEMO / REPLAY / SELFTEST / SAMPLE still proceed.
-#   npx wrangler kv namespace create METERING_KV
-#   [[kv_namespaces]]
-#   binding = "METERING_KV"
-#   id = "<namespace id from that command>"
+# Hard-stop ledger (Workers KV). Bound 2026-10-02 for P11 dogfood.
+# Payment FAIL not lifted. Ready=NO. Non-billable DEMO/REPLAY/SELFTEST/SAMPLE still proceed.
+[[kv_namespaces]]
+binding = "METERING_KV"
+id = "ca78fb121eb746db9097b63328b49631"
