@@ -10,10 +10,11 @@ A reversible, flag-gated publisher that turns a **terminal** dogfood-owner objec
 
 ## What this is not
 
-- Live Helm/joinermill push (flag OFF)
+- A live push while the flag is OFF
 - Stranger write / Clerk / waitlist / pay
 - DEMO-as-PoW · Worker-accept-as-evidence · busy theater
 - ListingLift / Charles / Path2
+- A clean ship or a UZ-cleared claim
 
 ## Usage (flag OFF = staging only)
 
@@ -24,8 +25,10 @@ python3 publish_evidence.py --packet fixtures/UZ-FC-20261002-001.json
 # Explicit dry-run (no staging write)
 python3 publish_evidence.py --packet fixtures/UZ-FC-20261002-001.json --dry-run
 
-# Live dual-write — HARD FAIL unless HELM_EVIDENCE_PUBLISH=1 AND --i-accept-gage-enable
-# (not used this cycle)
+# Live dual-write exists and stays OFF.
+# Ask hooks never pass the gage-enable switch.
+# After a Gage packet, a human may run one manual publish with
+# HELM_EVIDENCE_PUBLISH=1 and that switch. Do not commit the flag.
 ```
 
 From the evaos-v05 repo root:
@@ -55,7 +58,8 @@ Wire this into `evaos-v05/scripts/process_owner_asks.sh` **behind the same flag*
 **Wired in this repo (flag still OFF).** `process_owner_asks.sh` calls `run_from_asks.sh` at the end. That hook calls `publish_evidence.py` only for a dogfood owner/objective packet that is already terminal (`ANSWERED` or `DONE`) and already has at least one evidence URL. Canned OBJECTIVE answers and `kind=selftest` never qualify.
 
 - `HELM_EVIDENCE_PUBLISH` unset or `0`: staging file only (or no call, when nothing qualifies). No live dual-write.
-- The hook never passes `--i-accept-gage-enable`. Live push stays hard-refused.
-- Even with the flag and that switch, this cut still refuses live Helm/joinermill writes. A follow-on after a Gage enable packet has to implement those targets.
+- The hook never passes the gage-enable switch. With the flag ON and no switch, the publisher hard-refuses.
+- Live dual-write runs only when a human sets the flag and passes that switch on `publish_evidence.py`. Targets are Helm `Evaisawesome2025/evaos-v06` `v07/outbox/threads.json` and Joinermill `Evaisawesome2025/joinermill` `app/outbox/threads.json` (same contents API as the ask dual-write). Other repos are refused.
+- Tests point `EVIDENCE_LIVE_SINK=dir:<tmp>` so they do not push Pages. The default sink is `gh`.
 
 Not UZ-cleared. Not a clean ship. Do not claim evidence is live.

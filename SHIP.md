@@ -19,15 +19,15 @@ Canned `OBJECTIVE:` answers stay enqueue-only. `kind=selftest` stays off the pro
 
 While the flag is OFF, a qualifying packet is written to the local staging file `scripts/dogfood_evidence_publisher/staging/threads.json` only. Presence on that write is idle. That file is not Pages.
 
-## Live push (not this cut)
+## Live dual-write (code present, flag OFF)
 
-Live targets, when a later cut implements them after Gage:
+The publisher can dual-write a validated terminal packet through the GitHub contents API (same GET/PUT shape as `process_owner_asks.sh`). It does that only when `HELM_EVIDENCE_PUBLISH=1` **and** a human passes `--i-accept-gage-enable`.
 
 | Target | Path |
 |--------|------|
 | Helm Objective Bay | `Evaisawesome2025/evaos-v06` `v07/outbox/threads.json` |
 | Joinermill product poll | `Evaisawesome2025/joinermill` `app/outbox/threads.json` |
 
-`publish_evidence.py` hard-refuses that push unless `HELM_EVIDENCE_PUBLISH=1` **and** `--i-accept-gage-enable`. The ask hook never passes that switch. Even with both, this cut still refuses and does not dual-write. Implement the live write only in a follow-on after a new Gage AUDITOR packet.
+`scripts/process_owner_asks.sh` and `run_from_asks.sh` never pass that switch, so the ask processor cannot live-push. Flag unset/`0` remains validate + local staging only. Presence on a terminal publish is idle. Other repos and paths are refused.
 
-Do not claim the Objective Bay shows live org evidence from this change.
+Enable only after a new Gage AUDITOR packet: one manual run, flag set in that shell only, switch passed by the human. Do not commit the flag. Do not claim the Objective Bay shows live org evidence from this change.

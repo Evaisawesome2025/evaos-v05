@@ -6,9 +6,9 @@
 # Canned OBJECTIVE answers and selftests are dropped by select_packets.py.
 #
 # HELM_EVIDENCE_PUBLISH unset or 0: staging path only (local file). No live push.
-# HELM_EVIDENCE_PUBLISH=1: this hook still does not pass --i-accept-gage-enable,
+# HELM_EVIDENCE_PUBLISH=1: this hook still does not pass the gage-enable switch,
 # so publish_evidence.py hard-refuses live Helm / joinermill dual-write.
-# This cut does not implement that live write.
+# A human may pass that switch only after a Gage packet. This hook never does.
 set -euo pipefail
 
 MODULE="$(cd "$(dirname "$0")" && pwd)"
