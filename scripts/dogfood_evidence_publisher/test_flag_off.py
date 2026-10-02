@@ -28,12 +28,16 @@ STAGING = MODULE / "staging"
 DRY = MODULE / "dry_run"
 
 sys.path.insert(0, str(MODULE))
+import publish_evidence  # noqa: E402
 import select_packets  # noqa: E402
 
 
 def _env(**extra):
     env = os.environ.copy()
     env.pop("HELM_EVIDENCE_PUBLISH", None)
+    env.pop("EVIDENCE_LIVE_SINK", None)
+    # Tests must not reach the GitHub contents API.
+    env["EVAOS_EVIDENCE_GH"] = "forbidden"
     env.update(extra)
     return env
 
@@ -145,13 +149,15 @@ class FlagOffTests(unittest.TestCase):
         self.assertIn("requires --i-accept-gage-enable", result.stderr)
         self.assertFalse((STAGING / "threads.json").exists())
 
-    def test_flag_on_with_switch_still_refuses_live_write(self):
+    def test_flag_on_with_switch_and_default_sink_does_not_call_gh(self):
+        # Both gates with the default gh sink must still be blocked in this
+        # test process. Production code would call gh; tests forbid that.
         result = _run(
             ["--packet", str(FIXTURE), "--i-accept-gage-enable"],
             _env(HELM_EVIDENCE_PUBLISH="1"),
         )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("live Helm/joinermill dual-write not enabled", result.stderr)
+        self.assertIn("gh invoked while forbidden", result.stderr)
         self.assertFalse((STAGING / "threads.json").exists())
 
     def test_empty_evidence_rejected(self):
@@ -302,6 +308,176 @@ class HookTests(unittest.TestCase):
         self.assertIn("requires --i-accept-gage-enable", result.stderr)
         self.assertNotIn("gh-called", result.stderr)
         self.assertFalse((STAGING / "threads.json").exists())
+
+
+def _seed_live(root: Path) -> None:
+    docs = {
+        ("Evaisawesome2025/evaos-v06", "v07/outbox/threads.json"): {
+            "version": "0.7",
+            "note": "Helm dogfood bay. Presence idle. No secrets.",
+            "presence": [{"id": "eva", "status": "working"}],
+            "approves": [{"id": "keep-me", "status": "PENDING"}],
+            "threads": [
+                {
+                    "intent_id": "older-thread",
+                    "question": "prior owner ask",
+                    "kind": "owner",
+                    "status": "ANSWERED",
+                }
+            ],
+        },
+        ("Evaisawesome2025/joinermill", "app/outbox/threads.json"): {
+            "version": "1",
+            "note": "Joinermill product poll. No secrets.",
+            "presence": [{"id": "eva", "status": "idle"}],
+            "threads": [],
+        },
+    }
+    for (repo, path), doc in docs.items():
+        dest = root / repo.replace("/", "__") / path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(doc, indent=2) + "\n")
+        Path(str(dest) + ".sha").write_text("seed-sha\n")
+
+
+def _read_seed(root: Path, repo: str, path: str) -> dict:
+    return json.loads((root / repo.replace("/", "__") / path).read_text())
+
+
+class LiveDualWriteTests(unittest.TestCase):
+    def tearDown(self):
+        shutil.rmtree(STAGING, ignore_errors=True)
+        shutil.rmtree(DRY, ignore_errors=True)
+
+    def test_both_gates_write_helm_and_joinermill_in_temp_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _seed_live(root)
+            bin_dir = root / "bin"
+            bin_dir.mkdir()
+            gh = bin_dir / "gh"
+            gh.write_text("#!/bin/sh\necho gh-called >&2\nexit 99\n")
+            gh.chmod(0o755)
+            env = _env(
+                HELM_EVIDENCE_PUBLISH="1",
+                EVIDENCE_LIVE_SINK=f"dir:{root}",
+                PATH=str(bin_dir) + os.pathsep + os.environ.get("PATH", ""),
+            )
+            result = _run(["--packet", str(FIXTURE), "--i-accept-gage-enable"], env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('"live_push": true', result.stdout)
+            self.assertIn('"transport": "dir"', result.stdout)
+            self.assertNotIn("gh-called", result.stderr)
+            helm = _read_seed(root, "Evaisawesome2025/evaos-v06", "v07/outbox/threads.json")
+            mill = _read_seed(root, "Evaisawesome2025/joinermill", "app/outbox/threads.json")
+        self.assertTrue(all(p["status"] == "idle" for p in helm["presence"]))
+        self.assertTrue(all(p["status"] == "idle" for p in mill["presence"]))
+        self.assertEqual(helm["threads"][0]["objective_id"], "UZ-FC-20261002-001")
+        self.assertEqual(helm["threads"][0]["stage"], "done")
+        self.assertGreaterEqual(len(helm["threads"][0]["evidence"]), 1)
+        self.assertNotIn("author", helm["threads"][0])
+        self.assertNotIn("issue_number", helm["threads"][0])
+        self.assertEqual(helm["threads"][1]["intent_id"], "older-thread")
+        self.assertEqual(helm["note"], "Helm dogfood bay. Presence idle. No secrets.")
+        self.assertEqual(helm["approves"][0]["id"], "keep-me")
+        self.assertEqual(mill["threads"][0]["objective_id"], "UZ-FC-20261002-001")
+        self.assertEqual(mill["note"], "Joinermill product poll. No secrets.")
+        self.assertNotIn("STAGING", helm["note"])
+        self.assertFalse((STAGING / "threads.json").exists())
+
+    def test_flag_off_ignores_switch_and_does_not_touch_live_sink(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _seed_live(root)
+            before = (root / "Evaisawesome2025__evaos-v06" / "v07" / "outbox" / "threads.json").read_text()
+            result = _run(
+                ["--packet", str(FIXTURE), "--i-accept-gage-enable"],
+                _env(EVIDENCE_LIVE_SINK=f"dir:{root}"),
+            )
+            after = (root / "Evaisawesome2025__evaos-v06" / "v07" / "outbox" / "threads.json").read_text()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("PASS staging", result.stdout)
+        self.assertIn('"live_push": false', result.stdout)
+        self.assertEqual(before, after)
+
+    def test_dry_run_with_both_gates_does_not_write_sink(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _seed_live(root)
+            before = (root / "Evaisawesome2025__joinermill" / "app" / "outbox" / "threads.json").read_text()
+            result = _run(
+                ["--packet", str(FIXTURE), "--dry-run", "--i-accept-gage-enable"],
+                _env(HELM_EVIDENCE_PUBLISH="1", EVIDENCE_LIVE_SINK=f"dir:{root}"),
+            )
+            after = (root / "Evaisawesome2025__joinermill" / "app" / "outbox" / "threads.json").read_text()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("PASS dry-run", result.stdout)
+        receipt = json.loads((DRY / "UZ-FC-20261002-001_dry.json").read_text())
+        self.assertFalse(receipt["live_push"])
+        self.assertTrue(receipt["would_live_push"])
+        self.assertEqual(before, after)
+        self.assertFalse((STAGING / "threads.json").exists())
+
+    def test_stranger_repo_refused_before_write(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _seed_live(root)
+            before = (root / "Evaisawesome2025__evaos-v06" / "v07" / "outbox" / "threads.json").read_text()
+            result = _run(
+                ["--packet", str(FIXTURE), "--i-accept-gage-enable"],
+                _env(
+                    HELM_EVIDENCE_PUBLISH="1",
+                    EVIDENCE_LIVE_SINK=f"dir:{root}",
+                    HELM_REPO="someone/else",
+                ),
+            )
+            after = (root / "Evaisawesome2025__evaos-v06" / "v07" / "outbox" / "threads.json").read_text()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("refusing stranger", result.stderr)
+        self.assertEqual(before, after)
+
+    def test_missing_second_outbox_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _seed_live(root)
+            mill = root / "Evaisawesome2025__joinermill" / "app" / "outbox" / "threads.json"
+            mill.unlink()
+            before = (root / "Evaisawesome2025__evaos-v06" / "v07" / "outbox" / "threads.json").read_text()
+            result = _run(
+                ["--packet", str(FIXTURE), "--i-accept-gage-enable"],
+                _env(HELM_EVIDENCE_PUBLISH="1", EVIDENCE_LIVE_SINK=f"dir:{root}"),
+            )
+            after = (root / "Evaisawesome2025__evaos-v06" / "v07" / "outbox" / "threads.json").read_text()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("live sink missing", result.stderr)
+        self.assertEqual(before, after)
+
+    def test_merge_live_caps_preserves_note_and_idles(self):
+        packet = json.loads(FIXTURE.read_text())
+        record = publish_evidence.validate_packet(packet)
+        threads = [
+            {"intent_id": f"i{n}", "objective_id": f"i{n}", "kind": "owner", "status": "ANSWERED"}
+            for n in range(50)
+        ]
+        merged = publish_evidence.merge_live(
+            {
+                "note": "keep-me",
+                "threads": threads,
+                "presence": [{"id": "eva", "status": "working"}],
+            },
+            record,
+        )
+        self.assertEqual(len(merged["threads"]), 50)
+        self.assertEqual(merged["threads"][0]["objective_id"], "UZ-FC-20261002-001")
+        self.assertEqual(merged["note"], "keep-me")
+        self.assertTrue(all(p["status"] == "idle" for p in merged["presence"]))
+
+    def test_live_record_rejects_author_field(self):
+        packet = json.loads(FIXTURE.read_text())
+        record = publish_evidence.validate_packet(packet)
+        record["author"] = "Evaisawesome2025"
+        with self.assertRaises(SystemExit):
+            publish_evidence.assert_live_record(record)
 
 
 if __name__ == "__main__":

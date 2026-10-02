@@ -7,15 +7,22 @@
 
 | State | Meaning |
 |-------|---------|
-| **OFF** | Build + dry-run + staging writes allowed. **No** live push to Helm `outbox/threads.json` or joinermill `app/outbox/threads.json`. |
-| **ON** | Only after Gage enable packet PASS. Then Eva/Drew may dual-write dogfood-owner terminal records with `evidence[]`. |
+| **OFF** | Build + dry-run + staging writes allowed. **No** live push to Helm `v07/outbox/threads.json` or joinermill `app/outbox/threads.json`. |
+| **ON** | Live dual-write code exists. It runs only when a human also passes `--i-accept-gage-enable` after a Gage enable packet. Ask-processor call sites never pass that switch. |
 
-**Enable resume_when:** Gage packet (new AUDITOR id) explicitly authorizes flag ON for dogfood-owner scope only.
+**Enable:** a new Gage AUDITOR packet authorizes flag ON for dogfood-owner scope. Then Eva/Drew, in one manual run, set `HELM_EVIDENCE_PUBLISH=1` and pass `--i-accept-gage-enable` to `publish_evidence.py`. Do not commit the flag. Do not export it from CI or `process_owner_asks.sh`.
 
-**Non-claims while OFF:** empty live Helm bay is honest; do not claim “evidence live.”
+**Live targets (only behind both gates):**
+
+| Target | Repo path |
+|--------|-----------|
+| Helm Objective Bay | `Evaisawesome2025/evaos-v06` `v07/outbox/threads.json` |
+| Joinermill product poll | `Evaisawesome2025/joinermill` `app/outbox/threads.json` |
+
+Any other repo or path is refused.
+
+**Non-claims:** flag stays OFF in this repo. Empty live Helm bay stays honest until that manual run. Do not claim “evidence live,” clean ship, or UZ cleared.
 
 ## This repo
 
-Copied to `evaos-v05` at `scripts/dogfood_evidence_publisher/FLAG.md`.
-
-`HELM_EVIDENCE_PUBLISH` is not exported in this repo, in CI, or in `scripts/process_owner_asks.sh`. Unset and `0` are **OFF**. This cut does not push Helm `v07/outbox/threads.json` or Joinermill `app/outbox/threads.json`. Not UZ-cleared. Not a clean ship.
+`HELM_EVIDENCE_PUBLISH` is not exported in this repo, in CI, or in `scripts/process_owner_asks.sh`. Unset and `0` are **OFF**. `run_from_asks.sh` never passes the gage-enable switch, so the ask processor cannot live-push. Not UZ-cleared. Not a clean ship.

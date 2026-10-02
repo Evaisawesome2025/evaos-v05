@@ -367,8 +367,8 @@ fi
 echo "Done. v05 outbox: $OUTBOX ; product: $PRODUCT_REPO:$PRODUCT_OUTBOX_PATH"
 
 # B1: terminal dogfood evidence only. Flag unset/0 → staging or skip.
-# Never passes the gage-enable switch. Does not write Helm v07 or change
-# the joinermill dual-write above. Canned OBJECTIVE / selftest do not qualify.
+# Never passes the gage-enable switch, so this processor cannot live-push.
+# Canned OBJECTIVE / selftest do not qualify.
 "$ROOT/scripts/dogfood_evidence_publisher/run_from_asks.sh" \
   "${UZ_INBOX_PATH:-/home/box/business/architecture/evaos/operating/uz_objective_inbox/queue.json}" \
   "$OUTBOX"
