@@ -14,3 +14,4 @@ tmp/
 *.gen
 scripts/dogfood_evidence_publisher/staging/
 scripts/dogfood_evidence_publisher/dry_run/
+scripts/dogfood_evidence_publisher/packets/
