@@ -5,8 +5,8 @@
   "stage": "done",
   "kind": "objective",
   "question": "OBJECTIVE: Determine the highest-leverage action to move EvaOS toward acquiring its first real paying customer. Challenge assumptions. Evidence on disk. No contact/spend/external publish/gate enable.",
-  "answer_text": "ONE action: close the dogfood evidence loop (B1 publisher flag-OFF + this UZ PoW). Prior objective before cash: prove Objective→Evidence once — selling founding seats with an empty bay is theater. Next cash-adjacent (gated): ONE Approve to arm Helm founding-seat waitlist (design already on disk). No LL/Charles/Path2. paid_n=0.",
-  "answer_html": "<p><strong>ONE action:</strong> close the dogfood evidence loop (B1 publisher flag-OFF + this UZ PoW).</p><p><strong>Prior before cash:</strong> prove Objective→Evidence once — empty-bay founding seats are theater.</p><p><strong>Next (gated):</strong> ONE Approve to arm Helm founding-seat waitlist. No LL/Charles/Path2. paid_n=0.</p>",
+  "answer_text": "ONE action DONE: Objective\u2192Evidence closed on dogfood bay for UZ-FC-20261002-001 (Gage re-audit PWW; bay evidence-live narrow). Standing HELM_EVIDENCE_PUBLISH remains default OFF \u2014 no auto-publish / ask processor never passes the Gage enable switch. Next cash-adjacent (gated): ONE Approve to arm Helm founding-seat waitlist. No LL/Charles/Path2. paid_n=0.",
+  "answer_html": "<p><strong>ONE action DONE:</strong> Objective\u2192Evidence closed on dogfood bay for UZ-FC-20261002-001 (Gage re-audit PWW; bay evidence-live narrow).</p><p><strong>Standing flag:</strong> HELM_EVIDENCE_PUBLISH remains default OFF \u2014 no auto-publish.</p><p><strong>Next (gated):</strong> ONE Approve to arm Helm founding-seat waitlist. No LL/Charles/Path2. paid_n=0.</p>",
   "answered_ct": "2026-10-02T07:15-05:00",
   "evidence": [
     {
@@ -34,7 +34,7 @@
       "opened_ct": "2026-10-02T07:15-05:00"
     },
     {
-      "title": "Helm v0.7 dogfood (idle bay — publisher not live)",
+      "title": "Helm v0.7 dogfood (idle bay \u2014 publisher not live)",
       "url": "https://evaisawesome2025.github.io/evaos-v06/v07/",
       "type": "https",
       "opened_ct": "2026-10-02T07:15-05:00"
