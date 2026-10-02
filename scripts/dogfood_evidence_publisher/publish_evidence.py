@@ -182,6 +182,37 @@ def idle_presence() -> list:
     ]
 
 
+
+EMPTY_UNTIL_RE = re.compile(r"(?i)empty\s+until")
+
+
+def honest_live_note(note: str, threads: list) -> str:
+    """Refresh stale Empty-until copy when the outbox already has replies.
+
+    Gage AUDIT-20261002-0819 soft WARN: do not leave "Empty until…" on a
+    nonempty dogfood bay. Preserves an already-honest note unchanged.
+    Does not weaken gates, expand permissions, or invent busy presence.
+    """
+    note = str(note or "").strip()
+    if not threads:
+        return note
+    if not EMPTY_UNTIL_RE.search(note):
+        return note
+    # Drop the Empty-until sentence(s); keep the rest. If nothing remains, use
+    # a minimal honest default (no Empty-until, no STAGING, no flag claims).
+    cleaned = EMPTY_UNTIL_RE.sub("", note)
+    cleaned = re.sub(r"\s{2,}", " ", cleaned)
+    cleaned = re.sub(r"\.\s*\.", ".", cleaned).strip(" .")
+    if cleaned:
+        if not cleaned.endswith("."):
+            cleaned += "."
+        return cleaned
+    return (
+        "Dogfood owner outbox. Presence stays idle unless a real job is recorded. "
+        "No secrets."
+    )
+
+
 def load_staging() -> dict:
     if STAGING.exists():
         return json.loads(STAGING.read_text())
@@ -227,6 +258,8 @@ def _splice_thread(outbox: dict, record: dict, *, cap: int | None, staging_note:
         outbox["note"] = (
             "Dogfood owner outbox. Presence stays idle unless a real job is recorded. No secrets."
         )
+    if not staging_note:
+        outbox["note"] = honest_live_note(outbox.get("note") or "", outbox.get("threads") or [])
     if "version" not in outbox:
         outbox["version"] = "1"
     return outbox
@@ -277,7 +310,7 @@ def assert_live_record(record: dict) -> None:
 
 
 def merge_live(outbox: dict, record: dict) -> dict:
-    """Sanitized prepend + idle presence. Preserves the live outbox note."""
+    """Sanitized prepend + idle presence. Refreshes stale Empty-until notes only."""
     assert_live_record(record)
     merged = _splice_thread(dict(outbox or {}), record, cap=LIVE_THREAD_CAP, staging_note=False)
     if any((p or {}).get("status") != "idle" for p in merged.get("presence") or []):

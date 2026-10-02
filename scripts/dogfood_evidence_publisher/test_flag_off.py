@@ -480,5 +480,116 @@ class LiveDualWriteTests(unittest.TestCase):
             publish_evidence.assert_live_record(record)
 
 
+
+class HonestyRefreshTests(unittest.TestCase):
+    """Exp1: Gage soft-WARN Empty-until / flag-OFF honesty (sandbox)."""
+
+    def tearDown(self):
+        shutil.rmtree(STAGING, ignore_errors=True)
+        shutil.rmtree(DRY, ignore_errors=True)
+
+    def test_honest_live_note_clears_empty_until_when_threads_present(self):
+        note = (
+            "Dogfood replies for Helm v0.7 Objective Bay. "
+            "Empty until a real reply is published here. Presence stays idle."
+        )
+        out = publish_evidence.honest_live_note(note, [{"intent_id": "x"}])
+        self.assertNotRegex(out, r"(?i)empty\s+until")
+        self.assertIn("Helm", out)
+        self.assertIn("idle", out.lower())
+
+    def test_honest_live_note_preserves_when_empty_threads(self):
+        note = "Empty until a real reply is published here."
+        out = publish_evidence.honest_live_note(note, [])
+        self.assertIn("Empty until", out)
+
+    def test_honest_live_note_preserves_already_honest(self):
+        note = "Helm dogfood bay. Presence idle. No secrets."
+        self.assertEqual(publish_evidence.honest_live_note(note, [{"a": 1}]), note)
+
+    def test_merge_live_refreshes_empty_until_note(self):
+        packet = json.loads(FIXTURE.read_text())
+        record = publish_evidence.validate_packet(packet)
+        merged = publish_evidence.merge_live(
+            {
+                "version": "0.7",
+                "note": (
+                    "Dogfood replies for Helm v0.7 Objective Bay. "
+                    "Empty until a real reply is published here. Presence stays idle."
+                ),
+                "threads": [],
+                "presence": [{"id": "eva", "status": "idle"}],
+            },
+            record,
+        )
+        self.assertNotRegex(merged["note"], r"(?i)empty\s+until")
+        self.assertEqual(merged["threads"][0]["objective_id"], "UZ-FC-20261002-001")
+        self.assertNotIn("flag-OFF", merged["threads"][0]["answer_text"])
+
+    def test_dir_sink_republish_clears_baseline_defects(self):
+        """Sandbox measurement of Exp1 vs live baseline shape (M1/M2 → 0)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # Seed helm with the live baseline defect shape
+            helm_doc = {
+                "version": "0.7",
+                "note": (
+                    "Dogfood replies for Helm v0.7 Objective Bay. "
+                    "Empty until a real reply is published here. Presence stays idle "
+                    "unless a real job is recorded. No secrets."
+                ),
+                "presence": [{"id": "eva", "status": "idle"}],
+                "approves": [],
+                "threads": [
+                    {
+                        "intent_id": "UZ-FC-20261002-001",
+                        "objective_id": "UZ-FC-20261002-001",
+                        "status": "DONE",
+                        "stage": "done",
+                        "kind": "objective",
+                        "question": "prior",
+                        "answer_text": "prior with flag-OFF claim",
+                        "evidence": [],
+                    }
+                ],
+            }
+            mill_doc = {
+                "version": "1",
+                "note": "Public replies for Joinermill. No secrets.",
+                "presence": [{"id": "eva", "status": "idle"}],
+                "threads": [
+                    {
+                        "intent_id": "UZ-FC-20261002-001",
+                        "objective_id": "UZ-FC-20261002-001",
+                        "status": "DONE",
+                        "answer_text": "prior with flag-OFF claim",
+                    }
+                ],
+            }
+            for (repo, path), doc in [
+                (("Evaisawesome2025/evaos-v06", "v07/outbox/threads.json"), helm_doc),
+                (("Evaisawesome2025/joinermill", "app/outbox/threads.json"), mill_doc),
+            ]:
+                dest = root / repo.replace("/", "__") / path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_text(json.dumps(doc, indent=2) + "\n")
+                Path(str(dest) + ".sha").write_text("seed-sha\n")
+
+            live_pkt = MODULE / "packets" / "UZ-FC-20261002-001-live.json"
+            if not live_pkt.exists():
+                self.skipTest("live packet missing (gitignored); fixture-only path covered above")
+            result = _run(
+                ["--packet", str(live_pkt), "--i-accept-gage-enable"],
+                _env(HELM_EVIDENCE_PUBLISH="1", EVIDENCE_LIVE_SINK=f"dir:{root}"),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            helm = _read_seed(root, "Evaisawesome2025/evaos-v06", "v07/outbox/threads.json")
+            mill = _read_seed(root, "Evaisawesome2025/joinermill", "app/outbox/threads.json")
+        self.assertNotRegex(helm["note"], r"(?i)empty\s+until")
+        self.assertNotIn("flag-OFF", helm["threads"][0]["answer_text"])
+        self.assertNotIn("flag-OFF", mill["threads"][0]["answer_text"])
+        self.assertTrue(all(p["status"] == "idle" for p in helm["presence"]))
+
+
 if __name__ == "__main__":
     unittest.main()
