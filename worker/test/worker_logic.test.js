@@ -2,8 +2,13 @@
  * Unit tests for Worker validation rules (mirrors src/index.js constraints).
  * Does not call GitHub or Cloudflare — safe offline.
  */
-const { describe, it } = require("node:test");
-const assert = require("node:assert/strict");
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const MAX_BODY = 240;
 const CRED_RE = /\b(password|api[\s_-]?key|secret|token|credit[\s_-]?card|cvv|ssn)\b/i;
@@ -59,8 +64,7 @@ describe("CORS allowlist", () => {
   });
 
   it("worker source allowlist matches the mirrored list", () => {
-    const fs = require("fs");
-    const src = fs.readFileSync(require("path").join(__dirname, "../src/index.js"), "utf8");
+    const src = fs.readFileSync(path.join(__dirname, "../src/index.js"), "utf8");
     const block = src.match(/const ALLOWED_ORIGINS = \[([\s\S]*?)\];/);
     assert.ok(block, "ALLOWED_ORIGINS block missing from worker source");
     const fromSource = [...block[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
@@ -70,8 +74,7 @@ describe("CORS allowlist", () => {
 
 describe("no secrets in worker source tree contract", () => {
   it("worker source has no ghp_/gho_/github_pat_ literals", () => {
-    const fs = require("fs");
-    const src = fs.readFileSync(require("path").join(__dirname, "../src/index.js"), "utf8");
+    const src = fs.readFileSync(path.join(__dirname, "../src/index.js"), "utf8");
     assert.equal(/ghp_|gho_|github_pat_/.test(src), false);
     assert.equal(/OWNER_BEARER\s*=\s*["']/.test(src), false);
   });

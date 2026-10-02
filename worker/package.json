@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.5.0",
   "description": "EvaOS v0.5 trusted Ask ingress (Cloudflare Worker)",
+  "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "test": "node --test test/worker_logic.test.js",
+    "test": "node --test test/worker_logic.test.js test/hardstop.test.js",
     "deploy": "wrangler deploy",
     "tail": "wrangler tail"
   },
