@@ -1,6 +1,8 @@
 .DS_Store
 node_modules/
 worker/node_modules/
+__pycache__/
+*.pyc
 worker/.wrangler/
 worker/dist/
 *.pem
@@ -10,3 +12,5 @@ worker/dist/
 .secrets/
 tmp/
 *.gen
+scripts/dogfood_evidence_publisher/staging/
+scripts/dogfood_evidence_publisher/dry_run/
