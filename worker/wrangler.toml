@@ -8,3 +8,14 @@ compatibility_date = "2026-09-30"
 workers_dev = true
 
 # Free tier: no paid routes, no custom domain required for dogfood.
+
+# Dogfood hard-stop ledger. NOT provisioned here. NOT a payment store.
+# Default without this binding: isolate memory (resets with the isolate).
+# Create a namespace out of band, then uncomment and put the real id:
+# [[kv_namespaces]]
+# binding = "METERING_KV"
+# id = "<from: wrangler kv namespace create METERING_KV>"
+#
+# Optional dogfood estimate in USD (default 0.05). Not a price and not a charge.
+# [vars]
+# ASK_ESTIMATED_COGS_USD = "0.05"
