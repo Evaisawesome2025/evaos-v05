@@ -19,6 +19,8 @@
  * on the OBJECTIVE binding. The sentence is saved once and is not replaced.
  * The same record can gain notes later. This post does not write an artifact.
  * Paid research is not called; notes say what is unknown. Ready stays false.
+ * GET  /objective — read that one record. No write.
+ * GET  /objective/<run_id> — that same record when the run id matches, else 404.
  */
 import {
   DOGFOOD_POLICY,
@@ -551,6 +553,47 @@ async function handleObjective(request, env, origin) {
   return json(201, objectiveBody(applied.record, true), origin);
 }
 
+function objectiveView(record) {
+  return {
+    sentence: record.sentence,
+    run_id: record.run_id,
+    status: record.status,
+    notes: record.notes,
+    artifact: typeof record.artifact === "string" ? record.artifact : "",
+    time: record.time,
+    next_step: record.next_step,
+    ready: false,
+    payment_fail: "not_lifted",
+  };
+}
+
+function objectiveReadPath(pathname) {
+  if (pathname === "/objective") return { kind: "record" };
+  const match = /^\/objective\/([^/]+)$/.exec(pathname);
+  if (!match) return null;
+  let run_id = match[1];
+  try {
+    run_id = decodeURIComponent(match[1]);
+  } catch {
+    run_id = match[1];
+  }
+  return { kind: "run", run_id };
+}
+
+async function handleObjectiveRead(env, origin, path) {
+  const kv = objectiveKv(env);
+  if (!kv) return objectiveError(503, "objective_store_unbound", origin);
+
+  const current = await readStrangerObjective(kv);
+  if (current.state !== "objective") {
+    return objectiveError(404, "not_found", origin);
+  }
+  if (path.kind === "run" && path.run_id !== current.record.run_id) {
+    return objectiveError(404, "not_found", origin);
+  }
+  return json(200, objectiveView(current.record), origin);
+}
+
 export default {
   async fetch(request, env = {}) {
     const origin = request.headers.get("Origin") || "";
@@ -585,6 +628,11 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/objective") {
       return handleObjective(request, env, origin);
+    }
+
+    if (request.method === "GET") {
+      const objectivePath = objectiveReadPath(url.pathname);
+      if (objectivePath) return handleObjectiveRead(env, origin, objectivePath);
     }
 
     return json(404, { status: "FAILED", error: "not_found" }, origin);
