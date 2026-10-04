@@ -15,3 +15,9 @@ workers_dev = true
 [[kv_namespaces]]
 binding = "METERING_KV"
 id = "ca78fb121eb746db9097b63328b49631"
+
+# Stranger objective sentence. Namespace already exists on this worker's account.
+# Title: evaos-v05-ask--OBJECTIVE. Not created here. Not METERING_KV.
+[[kv_namespaces]]
+binding = "OBJECTIVE"
+id = "f9c1e824a1d04be1bb2cbcbcabf63d2f"
