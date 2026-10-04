@@ -31,8 +31,12 @@
  * id. Status is derived from that run's events. The pointer key is
  * objective/<objective_id> and holds only objective_id and open_run_id.
  * Events decide the one open run; the pointer is a reference, not a second
- * copy of the run. The write helper is for tests. This worker's fetch handler
- * does not call it, and it does not put stranger-objective.
+ * copy of the run. POST /objective/continue uses the same owner boundary as
+ * POST /intent. The body carries objective_id, open_run_id, and the action
+ * to record. When those two ids are the one open run, the handler appends
+ * that action on the run's event list through the write helper. It does not
+ * create a run. A mismatch, a terminal run, a second open run, or
+ * stranger-objective writes nothing. This worker does not put stranger-objective.
  */
 import {
   DOGFOOD_POLICY,
@@ -948,21 +952,41 @@ function pointerRecord(raw, key) {
   return { objective_id: parsed.objective_id, open_run_id: parsed.open_run_id };
 }
 
-async function listObjectivePointerKeys(kv) {
+async function listStoreKeys(kv, prefix) {
   if (!kv || typeof kv.list !== "function") return [];
   const found = [];
   let cursor;
   for (let page = 0; page < 5; page++) {
-    const listed = await kv.list(cursor ? { prefix: "objective/", cursor } : { prefix: "objective/" });
+    const opts = {};
+    if (prefix) opts.prefix = prefix;
+    if (cursor) opts.cursor = cursor;
+    const listed = await kv.list(opts);
     const keys = listed && Array.isArray(listed.keys) ? listed.keys : [];
     for (const item of keys) {
       const name = typeof item === "string" ? item : item && item.name;
-      if (typeof name === "string" && name.startsWith("objective/")) found.push(name);
+      if (typeof name !== "string") continue;
+      if (!prefix || name.startsWith(prefix)) found.push(name);
     }
     if (!listed || listed.list_complete !== false || !listed.cursor) break;
     cursor = listed.cursor;
   }
   return found;
+}
+
+async function listObjectivePointerKeys(kv) {
+  return listStoreKeys(kv, "objective/");
+}
+
+/** Open runs already stored. A run's key is its run id. No new index. */
+async function storedOpenRunIds(kv) {
+  if (!kv || typeof kv.list !== "function") return null;
+  const records = [];
+  for (const key of await listStoreKeys(kv)) {
+    const parsed = parseStoredJson(await kv.get(key));
+    if (!parsed || typeof parsed.run_id !== "string") continue;
+    if (key === STRANGER_OBJECTIVE_KEY || key === parsed.run_id) records.push(parsed);
+  }
+  return openRunIds(records);
 }
 
 /**
@@ -998,6 +1022,101 @@ async function readAgreedOpenRun(kv) {
   if (openIds.length !== 1 || openIds[0] !== pointer.open_run_id) return null;
   const open = known.find((record) => record.run_id === openIds[0]);
   return open || null;
+}
+
+function continuationPayload(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  const keys = Object.keys(payload);
+  if (keys.length !== 3) return null;
+  if (!keys.includes("objective_id") || !keys.includes("open_run_id") || !keys.includes("action")) return null;
+  return payload;
+}
+
+function sameRunActionEvent(action, openRunId, existing) {
+  const source = typeof action === "string" ? { name: action } : action;
+  if (!source || typeof source !== "object" || Array.isArray(source)) return null;
+  if (typeof action !== "string") {
+    for (const key of Object.keys(source)) {
+      if (key !== "name" && key !== "time" && key !== "before_state" && key !== "after_state") return null;
+    }
+  }
+  if (typeof source.name !== "string" || !OBJECTIVE_EVENT_NAMES.has(source.name)) return null;
+  if (source.name === "completed" || source.name === "failed") return null;
+  const before = source.before_state === undefined ? {} : source.before_state;
+  const after = source.after_state === undefined ? {} : source.after_state;
+  if (!before || typeof before !== "object" || Array.isArray(before)) return null;
+  if (!after || typeof after !== "object" || Array.isArray(after)) return null;
+  let time = source.time;
+  if (time === undefined) {
+    const prior = runEvents(existing);
+    const last = prior.length ? prior[prior.length - 1] : null;
+    time = last && typeof last.time === "string" ? last.time : "";
+  }
+  if (typeof time !== "string" || time.length < 1 || time.length > 64 || time.trim() !== time) return null;
+  return objectiveEvent(source.name, openRunId, time, snapshotJson(before), snapshotJson(after));
+}
+
+/**
+ * Append one carried action on the open run those two ids already name.
+ * The run key must already exist. This does not create a run or a pointer.
+ */
+async function recordSameRunAction(kv, payload) {
+  const input = continuationPayload(payload);
+  if (!input) return refusedRunWrite();
+  const objectiveId = input.objective_id;
+  const openRunId = input.open_run_id;
+  if (!validStoreId(objectiveId) || !validStoreId(openRunId)) return refusedRunWrite();
+  if (objectiveId === openRunId || openRunId === STRANGER_OBJECTIVE_KEY || objectiveId === STRANGER_OBJECTIVE_KEY) {
+    return refusedRunWrite();
+  }
+  const pointerKey = objectivePointerKey(objectiveId);
+  if (pointerKey === STRANGER_OBJECTIVE_KEY || pointerKey === openRunId) return refusedRunWrite();
+
+  const pointer = pointerRecord(await kv.get(pointerKey), pointerKey);
+  if (!pointerNames(pointer, objectiveId, openRunId)) return refusedRunWrite();
+
+  const existing = parseStoredJson(await kv.get(openRunId));
+  if (!existing || existing.run_id !== openRunId || existing.objective_id !== objectiveId) {
+    return refusedRunWrite();
+  }
+  if (hasTerminalEvent(runEvents(existing))) return refusedRunWrite();
+
+  const open = await readAgreedOpenRun(kv);
+  if (!open || open.run_id !== openRunId || open.objective_id !== objectiveId) return refusedRunWrite();
+  if (hasTerminalEvent(runEvents(open))) return refusedRunWrite();
+  const openIds = await storedOpenRunIds(kv);
+  if (!openIds || openIds.length !== 1 || openIds[0] !== openRunId) return refusedRunWrite();
+
+  const event = sameRunActionEvent(input.action, openRunId, existing);
+  if (!event) return refusedRunWrite();
+  if ((await kv.get(openRunId)) == null) return refusedRunWrite();
+
+  return writeObjectiveRun(kv, {
+    objective_id: objectiveId,
+    run_id: openRunId,
+    events: [event],
+  });
+}
+
+async function handleObjectiveContinue(request, env, origin) {
+  const blocked = ownerBoundary(request, env, origin);
+  if (blocked) return blocked;
+  if (!checkRate()) {
+    return json(
+      429,
+      { status: "FAILED", error: "rate_limited", ready: false, payment_fail: "not_lifted" },
+      origin
+    );
+  }
+  const kv = objectiveKv(env);
+  if (!kv) return objectiveError(503, "objective_store_unbound", origin);
+  const { payload, invalid } = await readJson(request);
+  if (invalid) return objectiveError(400, "invalid_json", origin);
+  const wrote = await recordSameRunAction(kv, payload);
+  if (!wrote || wrote.ok !== true) return objectiveError(409, "refused", origin);
+  const record = await readObjectiveRun(kv, payload.open_run_id);
+  if (!record) return objectiveError(409, "refused", origin);
+  return json(200, httpObjectiveView(record), origin);
 }
 
 async function handleObjectiveRead(env, origin, path) {
@@ -1049,6 +1168,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/objective") {
       return handleObjective(request, env, origin);
+    }
+
+    if (request.method === "POST" && url.pathname === "/objective/continue") {
+      return handleObjectiveContinue(request, env, origin);
     }
 
     if (request.method === "POST") {
