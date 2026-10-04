@@ -9,8 +9,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import worker, {
   OBJECTIVE_NEXT_STEP,
+  PAGE_READ_NOTES,
+  PAGE_READ_UNKNOWN_NOTES,
   PAID_RESEARCH_UNKNOWN_NOTES,
   applyStrangerObjective,
+  artifactTextToStore,
+  composeObjectiveArtifact,
+  pageNamedInSentence,
+  readObjectivePage,
   resetIngressForTests,
 } from "../src/index.js";
 import {
@@ -631,7 +637,7 @@ describe("stranger objective save", () => {
     const data = await res.json();
     assert.equal(data.saved, true);
     assert.equal(data.sentence, "Find the first honest stranger objective");
-    assert.equal(data.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+    assert.equal(data.notes, PAGE_READ_UNKNOWN_NOTES);
     assert.equal(data.artifact, "");
     assert.equal(data.status, "SAVED");
     assert.equal(data.next_step, OBJECTIVE_NEXT_STEP);
@@ -643,11 +649,16 @@ describe("stranger objective save", () => {
     assert.equal(data.time === "2000-01-01T00:00:00.000Z", false);
     assert.ok(Math.abs(Date.parse(data.time) - started) < 5000);
     assert.match(data.run_id, /^[0-9a-f]{32}$/);
+    assert.deepEqual(
+      data.events.map((event) => event.name),
+      ["received", "saved", "owner", "work started", "failed"]
+    );
     assert.equal(kv.store.size, 1);
-    assert.equal(kv.puts.length, 1);
-    const saved = JSON.parse(kv.puts[0]);
+    assert.equal(kv.puts.length, 2);
+    const saved = JSON.parse(kv.store.get("stranger-objective"));
     assert.deepEqual(Object.keys(saved).sort(), [
       "artifact",
+      "events",
       "next_step",
       "notes",
       "run_id",
@@ -657,6 +668,7 @@ describe("stranger objective save", () => {
     ]);
     assert.equal(saved.artifact, "");
     assert.equal(saved.sentence, data.sentence);
+    assert.equal(saved.events.some((event) => event.name === "audit" || event.name === "completed"), false);
   });
 
   it("does not replace a stored sentence and returns its run id", async () => {
@@ -700,7 +712,7 @@ describe("stranger objective save", () => {
     assert.equal(JSON.parse(kv.store.get("stranger-objective")).sentence, "Already saved");
   });
 
-  it("fills unknown notes on the same record without changing the sentence", async () => {
+  it("resumes the same run on a later post and does not write another artifact", async () => {
     const kv = memoryKv([
       [
         "stranger-objective",
@@ -712,26 +724,26 @@ describe("stranger objective save", () => {
           artifact: "",
           time: "2026-10-04T12:00:00.000Z",
           next_step: OBJECTIVE_NEXT_STEP,
+          events: [{ name: "saved", run_id: "run-existing", who: "worker" }],
         }),
       ],
     ]);
-    const res = await worker.fetch(
-      postObjective("A second sentence", "https://joinermill.com"),
-      { OBJECTIVE: kv, METERING_KV: meteringKv() }
-    );
+    const before = kv.store.get("stranger-objective");
+    const res = await worker.fetch(postObjective("A second sentence", "https://joinermill.com"), {
+      OBJECTIVE: kv,
+      METERING_KV: meteringKv(),
+    });
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.equal(data.run_id, "run-existing");
     assert.equal(data.sentence, "Already saved");
-    assert.equal(data.notes, PAID_RESEARCH_UNKNOWN_NOTES);
     assert.equal(data.artifact, "");
     assert.equal(data.saved, false);
-    assert.equal(kv.puts.length, 1);
-    const saved = JSON.parse(kv.puts[0]);
-    assert.equal(saved.sentence, "Already saved");
-    assert.equal(saved.run_id, "run-existing");
-    assert.equal(saved.artifact, "");
-    assert.equal(saved.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+    assert.equal(data.events.length, 1);
+    assert.equal(data.events[0].run_id, "run-existing");
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 1);
+    assert.equal(kv.store.get("stranger-objective"), before);
   });
 
   it("refuses other origins, an unbound store, and a held key without writing", async () => {
@@ -958,5 +970,176 @@ describe("stranger objective save", () => {
     const unboundBody = await unbound.json();
     assert.equal(unboundBody.error, "objective_store_unbound");
     assert.equal(unboundBody.ready, false);
+  });
+
+  const FIXTURE_HTML = `<!doctype html>
+<html><body>
+<h1>Fixture mill</h1>
+<p>Fixture hero line stays exact.</p>
+<ul><li>Fixture status line says not for sale.</li></ul>
+</body></html>`;
+
+  const FOR_SALE_HTML = `<!doctype html>
+<html><body>
+<h1>Fixture shop</h1>
+<p>Other fixture hero.</p>
+<p>This fixture booth is for sale.</p>
+</body></html>`;
+
+  function assertRunEvents(events, names, runId) {
+    assert.deepEqual(
+      events.map((event) => event.name),
+      names
+    );
+    for (const event of events) {
+      assert.equal(event.run_id, runId);
+      assert.equal(event.who, "worker");
+      assert.equal(typeof event.time, "string");
+      assert.ok(event.before_state);
+      assert.ok(event.after_state);
+      assert.equal(JSON.stringify(event).includes("Glen"), false);
+    }
+    assert.equal(events.some((event) => event.name === "audit" || event.name === "completed"), false);
+  }
+
+  it("reads fixture html without baking a page sentence into the artifact helper", () => {
+    assert.equal(pageNamedInSentence("See https://example.com/x"), "");
+    assert.equal(pageNamedInSentence("Read https://joinermill.com today"), "https://joinermill.com/");
+    const page = readObjectivePage(FIXTURE_HTML);
+    assert.equal(page.ok, true);
+    assert.equal(page.hero, "Fixture hero line stays exact.");
+    assert.equal(page.notForSale, true);
+    assert.equal(page.saleQuote, "Fixture status line says not for sale.");
+    const artifact = composeObjectiveArtifact(page, "run-fixture");
+    assert.match(artifact, /^Fixture hero line stays exact\./);
+    assert.match(artifact, /Not for sale\. "Fixture status line says not for sale\."/);
+    assert.ok(artifact.includes("run-fixture"));
+    assert.equal(artifactTextToStore(artifact, "run-fixture"), artifact);
+    assert.equal(artifactTextToStore("Fixture hero line stays exact.", "run-fixture"), "");
+    const sale = readObjectivePage(FOR_SALE_HTML);
+    const saleArtifact = composeObjectiveArtifact(sale, "run-fixture");
+    assert.equal(saleArtifact.includes("Not for sale."), false);
+    assert.match(saleArtifact, /"This fixture booth is for sale\."/);
+    assert.equal(readObjectivePage("<h1>Only heading</h1><div>no paragraph</div>").ok, false);
+    const src = fs.readFileSync(path.join(__dirname, "../src/index.js"), "utf8");
+    assert.equal(src.includes("Fixture hero line stays exact"), false);
+    assert.equal(src.includes("This fixture booth is for sale"), false);
+  });
+
+  it("stores one artifact from fixture html on a clean post and reads it back", async () => {
+    const kv = memoryKv();
+    let fetches = 0;
+    globalThis.fetch = async (url) => {
+      fetches += 1;
+      assert.equal(String(url), "https://joinermill.com/");
+      return new Response(FIXTURE_HTML, { status: 200, headers: { "Content-Type": "text/html" } });
+    };
+    const env = { OBJECTIVE: kv, METERING_KV: meteringKv() };
+    const res = await worker.fetch(
+      postObjective("Read https://joinermill.com and quote the page.", "https://joinermill.com", {
+        artifact: "client-supplied-artifact",
+        result: "invented result",
+        score: 10,
+      }),
+      env
+    );
+    assert.equal(res.status, 201);
+    const data = await res.json();
+    assert.equal(fetches, 1);
+    assert.equal(data.status, "SAVED");
+    assert.equal(data.ready, false);
+    assert.equal(data.payment_fail, "not_lifted");
+    assert.equal(data.result, undefined);
+    assert.equal(data.score, undefined);
+    assert.equal(data.notes, PAGE_READ_NOTES);
+    assert.equal(data.artifact.includes(data.run_id), true);
+    assert.match(data.artifact, /Fixture hero line stays exact\./);
+    assert.match(data.artifact, /Not for sale\. "Fixture status line says not for sale\."/);
+    assert.equal(data.artifact.includes("client-supplied-artifact"), false);
+    assert.equal(data.artifact.includes("invented result"), false);
+    assertRunEvents(data.events, [
+      "received",
+      "saved",
+      "owner",
+      "work started",
+      "artifact",
+      "record updated",
+      "result",
+    ], data.run_id);
+    const owner = data.events.find((event) => event.name === "owner");
+    assert.equal(owner.after_state.ready, false);
+    assert.equal(owner.after_state.approval, false);
+    assert.equal(kv.store.size, 1);
+    assert.equal(kv.puts.length, 2);
+    const stored = JSON.parse(kv.store.get("stranger-objective"));
+    assert.equal(stored.run_id, data.run_id);
+    assert.equal(stored.artifact, data.artifact);
+    assert.equal(stored.status, "SAVED");
+
+    const again = await worker.fetch(
+      postObjective("A different sentence https://joinermill.com", "https://www.joinermill.com"),
+      env
+    );
+    assert.equal(again.status, 200);
+    const resumed = await again.json();
+    assert.equal(fetches, 1);
+    assert.equal(kv.puts.length, 2);
+    assert.equal(resumed.run_id, data.run_id);
+    assert.equal(resumed.sentence, data.sentence);
+    assert.equal(resumed.artifact, data.artifact);
+    assert.equal(resumed.events.length, data.events.length);
+    assert.equal(kv.store.size, 1);
+
+    const read = await worker.fetch(new Request(`https://worker.test/objective/${data.run_id}`), env);
+    assert.equal(read.status, 200);
+    const body = await read.json();
+    assert.deepEqual(body.events, data.events);
+    assert.equal(body.artifact, data.artifact);
+    assert.equal(body.ready, false);
+    assert.equal(kv.puts.length, 2);
+
+    const missed = await worker.fetch(new Request("https://worker.test/objective/other-run"), env);
+    assert.equal(missed.status, 404);
+    assert.equal(kv.puts.length, 2);
+    assert.equal(kv.store.size, 1);
+  });
+
+  it("appends failed and leaves the artifact empty when the page read fails", async () => {
+    const kv = memoryKv();
+    globalThis.fetch = async () => {
+      throw new Error("fixture fetch failed");
+    };
+    const res = await worker.fetch(
+      postObjective("Read https://joinermill.com", "https://joinermill.com"),
+      { OBJECTIVE: kv, METERING_KV: meteringKv() }
+    );
+    assert.equal(res.status, 201);
+    const data = await res.json();
+    assert.equal(data.artifact, "");
+    assert.equal(data.notes, PAGE_READ_UNKNOWN_NOTES);
+    assert.equal(data.status, "SAVED");
+    assert.equal(data.ready, false);
+    assertRunEvents(data.events, ["received", "saved", "owner", "work started", "failed"], data.run_id);
+    const stored = JSON.parse(kv.store.get("stranger-objective"));
+    assert.equal(stored.artifact, "");
+    assert.equal(stored.sentence, "Read https://joinermill.com");
+    assert.equal(JSON.stringify(stored).includes("Fixture hero"), false);
+    assert.equal(kv.store.size, 1);
+
+    const missing = memoryKv();
+    globalThis.fetch = async () =>
+      new Response("<h1>Only heading</h1><div>no paragraph</div>", {
+        status: 200,
+        headers: { "Content-Type": "text/html" },
+      });
+    const missingRes = await worker.fetch(
+      postObjective("Read https://www.joinermill.com/now", "https://joinermill.com"),
+      { OBJECTIVE: missing, METERING_KV: meteringKv() }
+    );
+    const missingData = await missingRes.json();
+    assert.equal(missingData.artifact, "");
+    assert.equal(missingData.notes, PAGE_READ_UNKNOWN_NOTES);
+    assert.equal(missingData.events.at(-1).name, "failed");
+    assert.equal(missing.store.size, 1);
   });
 });

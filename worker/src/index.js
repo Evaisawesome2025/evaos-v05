@@ -14,12 +14,12 @@
  * GET  /health  — liveness (no secrets)
  * OPTIONS       — CORS preflight
  *
- * POST /objective — public save from https://joinermill.com or
- * https://www.joinermill.com. No bearer. One KV key, stranger-objective,
- * on the OBJECTIVE binding. The sentence is saved once and is not replaced.
- * The same record can gain notes later. This post does not write an artifact.
- * Paid research is not called; notes say what is unknown. Ready stays false.
- * GET  /objective — read that one record. No write.
+ * POST /objective — one sentence on the key stranger-objective. The run id is
+ * created once. A clean post stores that sentence, then reads the public
+ * joinermill page named in the sentence and may write one artifact on the
+ * same record. A later post keeps the sentence and the run id and does not
+ * write another artifact. Ready stays false.
+ * GET  /objective — read that one record, including its events. No write.
  * GET  /objective/<run_id> — that same record when the run id matches, else 404.
  */
 import {
@@ -45,6 +45,22 @@ const OBJECTIVE_ORIGINS = Object.freeze([
 export const PAID_RESEARCH_UNKNOWN_NOTES =
   "Paid research call blocked. Unknown: what this objective would find, what it would cost, and what result would follow. No result was written.";
 export const OBJECTIVE_NEXT_STEP = "paid_research (does not run)";
+export const PAGE_READ_UNKNOWN_NOTES =
+  "Unknown: the page named in the sentence could not be read, or the first paragraph after the h1 was missing. The hero sentence was not written.";
+export const PAGE_READ_NOTES =
+  "Paid research was not called. Ready is false. No approval was claimed. The artifact quotes the fetched page.";
+const OBJECTIVE_EVENT_NAMES = new Set([
+  "received",
+  "saved",
+  "owner",
+  "work started",
+  "artifact",
+  "record updated",
+  "audit",
+  "result",
+  "completed",
+  "failed",
+]);
 const MAX_PER_WINDOW = 10;
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const REPO = "Evaisawesome2025/evaos-v05";
@@ -491,7 +507,7 @@ async function readStrangerObjective(kv) {
   return { state: "objective", record: parsed };
 }
 
-function objectiveBody(record, saved) {
+function objectiveFields(record) {
   return {
     sentence: record.sentence,
     run_id: record.run_id,
@@ -500,10 +516,14 @@ function objectiveBody(record, saved) {
     artifact: typeof record.artifact === "string" ? record.artifact : "",
     time: record.time,
     next_step: record.next_step,
-    saved,
+    events: Array.isArray(record.events) ? record.events : [],
     ready: false,
     payment_fail: "not_lifted",
   };
+}
+
+function objectiveBody(record, saved) {
+  return { ...objectiveFields(record), saved };
 }
 
 function objectiveError(status, error, origin) {
@@ -523,11 +543,7 @@ async function handleObjective(request, env, origin) {
   }
 
   if (current.state === "objective") {
-    const applied = applyStrangerObjective(current.record, {});
-    if (applied.changed) {
-      await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(applied.record));
-    }
-    return json(200, objectiveBody(applied.record, false), origin);
+    return json(200, objectiveBody(current.record, false), origin);
   }
 
   const { payload, invalid } = await readJson(request);
@@ -545,26 +561,213 @@ async function handleObjective(request, env, origin) {
     return objectiveError(400, "refused_credential_keywords", origin);
   }
 
-  const applied = applyStrangerObjective(null, {
-    sentence,
-    time: new Date().toISOString(),
-  });
-  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(applied.record));
-  return json(201, objectiveBody(applied.record, true), origin);
+  const time = new Date().toISOString();
+  const applied = applyStrangerObjective(null, { sentence, time });
+  const runId = applied.record.run_id;
+  const events = [
+    objectiveEvent("received", runId, time, { present: false }, { present: false, ready: false }),
+    objectiveEvent(
+      "saved",
+      runId,
+      time,
+      { sentence: "", status: "", ready: false },
+      { sentence, status: "SAVED", ready: false }
+    ),
+    objectiveEvent(
+      "owner",
+      runId,
+      time,
+      { ready: false },
+      { ready: false, approval: false }
+    ),
+    objectiveEvent(
+      "work started",
+      runId,
+      time,
+      { work: "not_started", ready: false, approval: false },
+      { work: "started", ready: false, approval: false }
+    ),
+  ];
+  let record = { ...applied.record, notes: "", artifact: "", events };
+  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
+
+  const page = await readNamedPage(sentence);
+  if (!page.ok) {
+    events.push(
+      objectiveEvent(
+        "failed",
+        runId,
+        time,
+        { artifact: "", status: "SAVED" },
+        { artifact: "", status: "SAVED", unknown: true, ready: false }
+      )
+    );
+    record = { ...record, status: "SAVED", artifact: "", notes: PAGE_READ_UNKNOWN_NOTES, events };
+    await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
+    return json(201, objectiveBody(record, true), origin);
+  }
+
+  const artifact = artifactTextToStore(composeObjectiveArtifact(page, runId), runId);
+  if (!artifact) {
+    record = { ...record, status: "SAVED", artifact: "", notes: PAGE_READ_UNKNOWN_NOTES, events };
+    await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
+    return json(201, objectiveBody(record, true), origin);
+  }
+
+  events.push(objectiveEvent("artifact", runId, time, { artifact: "" }, { artifact }));
+  events.push(
+    objectiveEvent(
+      "record updated",
+      runId,
+      time,
+      { artifact: "", status: "SAVED", ready: false },
+      { artifact, status: "SAVED", ready: false }
+    )
+  );
+  events.push(
+    objectiveEvent(
+      "result",
+      runId,
+      time,
+      { status: "SAVED", ready: false, approval: false },
+      { status: "SAVED", ready: false, approval: false }
+    )
+  );
+  const notes = page.saleQuote
+    ? PAGE_READ_NOTES
+    : `${PAGE_READ_NOTES} Unknown: the page does not say whether it is for sale.`;
+  record = { ...record, status: "SAVED", artifact, notes, events };
+  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
+  return json(201, objectiveBody(record, true), origin);
+}
+
+function objectiveEvent(name, runId, time, beforeState, afterState) {
+  if (!OBJECTIVE_EVENT_NAMES.has(name)) return null;
+  return {
+    name,
+    run_id: runId,
+    time,
+    who: "worker",
+    before_state: beforeState,
+    after_state: afterState,
+  };
+}
+
+function decodeHtml(text) {
+  const fromCode = (code) => {
+    if (!Number.isInteger(code) || code < 0 || code > 0x10ffff) return "";
+    return String.fromCodePoint(code);
+  };
+  return String(text)
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&#(\d+);/g, (all, n) => fromCode(Number(n)) || all)
+    .replace(/&#x([0-9a-f]+);/gi, (all, n) => fromCode(parseInt(n, 16)) || all);
+}
+
+function elementText(fragment) {
+  return decodeHtml(String(fragment).replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function pageNamedInSentence(sentence) {
+  const match = String(sentence || "").match(/https:\/\/[^\s<>"']+/i);
+  if (!match) return "";
+  let url;
+  try {
+    url = new URL(match[0]);
+  } catch {
+    return "";
+  }
+  if (url.protocol !== "https:") return "";
+  if (url.username || url.password || url.port) return "";
+  const host = url.hostname.toLowerCase();
+  if (host !== "joinermill.com" && host !== "www.joinermill.com") return "";
+  return url.href;
+}
+
+export function readObjectivePage(html) {
+  const source = String(html || "");
+  const h1 = /<h1\b[^>]*>[\s\S]*?<\/h1>/i.exec(source);
+  if (!h1) return { ok: false, hero: "", saleQuote: "", notForSale: false };
+  const after = source.slice(h1.index + h1[0].length);
+  const paragraph = /<p\b[^>]*>([\s\S]*?)<\/p>/i.exec(after);
+  const hero = paragraph ? elementText(paragraph[1]) : "";
+  if (!hero) return { ok: false, hero: "", saleQuote: "", notForSale: false };
+
+  let saleQuote = "";
+  let notForSale = false;
+  const blocks = source.matchAll(/<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi);
+  for (const block of blocks) {
+    const text = elementText(block[2]);
+    if (!text) continue;
+    if (/not for sale/i.test(text)) {
+      saleQuote = text;
+      notForSale = true;
+      break;
+    }
+  }
+  if (!saleQuote) {
+    for (const block of source.matchAll(/<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi)) {
+      const text = elementText(block[2]);
+      if (text && /\bfor sale\b/i.test(text)) {
+        saleQuote = text;
+        break;
+      }
+    }
+  }
+  return { ok: true, hero, saleQuote, notForSale };
+}
+
+export function composeObjectiveArtifact(page, runId) {
+  if (!page || !hasText(page.hero) || !hasText(runId)) return "";
+  const parts = [page.hero.trim()];
+  if (hasText(page.saleQuote)) {
+    parts.push(
+      page.notForSale ? `Not for sale. "${page.saleQuote.trim()}"` : `"${page.saleQuote.trim()}"`
+    );
+  }
+  parts.push(String(runId));
+  return parts.join("\n\n");
+}
+
+export function artifactTextToStore(text, runId) {
+  if (!hasText(text) || !hasText(runId) || !String(text).includes(runId)) return "";
+  return text;
+}
+
+async function readNamedPage(sentence) {
+  const pageUrl = pageNamedInSentence(sentence);
+  if (!pageUrl) return { ok: false, hero: "", saleQuote: "", notForSale: false };
+  let res;
+  try {
+    res = await fetch(pageUrl, {
+      method: "GET",
+      redirect: "manual",
+      headers: { Accept: "text/html", "User-Agent": "evaos-v05-ask-worker" },
+    });
+  } catch {
+    return { ok: false, hero: "", saleQuote: "", notForSale: false };
+  }
+  if (!res || !res.ok) return { ok: false, hero: "", saleQuote: "", notForSale: false };
+  let html = "";
+  try {
+    html = await res.text();
+  } catch {
+    return { ok: false, hero: "", saleQuote: "", notForSale: false };
+  }
+  if (html.length > 1000000) return { ok: false, hero: "", saleQuote: "", notForSale: false };
+  return readObjectivePage(html);
 }
 
 function objectiveView(record) {
-  return {
-    sentence: record.sentence,
-    run_id: record.run_id,
-    status: record.status,
-    notes: record.notes,
-    artifact: typeof record.artifact === "string" ? record.artifact : "",
-    time: record.time,
-    next_step: record.next_step,
-    ready: false,
-    payment_fail: "not_lifted",
-  };
+  return objectiveFields(record);
 }
 
 function objectiveReadPath(pathname) {
