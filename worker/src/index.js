@@ -21,6 +21,12 @@
  * write another artifact. Ready stays false.
  * GET  /objective — read that one record, including its events. No write.
  * GET  /objective/<run_id> — that same record when the run id matches, else 404.
+ * POST /objective/<run_id>/close — Authorization: Bearer <OWNER_BEARER>,
+ * the same owner boundary as POST /intent. On the stored record for that
+ * run id only, appends one audit event and then exactly one terminal event
+ * (completed or failed). The audit cites the caller's audit id and does not
+ * record a pass. The terminal carries the caller's failure reasons. The
+ * sentence, artifact, and run id stay. A later call appends nothing.
  */
 import {
   DOGFOOD_POLICY,
@@ -783,6 +789,106 @@ function objectiveReadPath(pathname) {
   return { kind: "run", run_id };
 }
 
+function objectiveClosePath(pathname) {
+  const match = /^\/objective\/([^/]+)\/close$/.exec(pathname);
+  if (!match) return null;
+  let run_id = match[1];
+  try {
+    run_id = decodeURIComponent(match[1]);
+  } catch {
+    run_id = match[1];
+  }
+  if (!run_id) return null;
+  return { run_id };
+}
+
+function hasTerminalEvent(events) {
+  return events.some((event) => event && (event.name === "completed" || event.name === "failed"));
+}
+
+async function handleObjectiveClose(request, env, origin, path) {
+  const blocked = ownerBoundary(request, env, origin);
+  if (blocked) return blocked;
+  if (!checkRate()) {
+    return json(429, { status: "FAILED", error: "rate_limited" }, origin);
+  }
+  const kv = objectiveKv(env);
+  if (!kv) return objectiveError(503, "objective_store_unbound", origin);
+
+  const current = await readStrangerObjective(kv);
+  if (current.state === "held") {
+    return objectiveError(409, "objective_record_held", origin);
+  }
+  if (current.state !== "objective") {
+    return objectiveError(404, "not_found", origin);
+  }
+  const record = current.record;
+  if (path.run_id !== record.run_id) {
+    return objectiveError(404, "not_found", origin);
+  }
+
+  const events = Array.isArray(record.events) ? record.events : [];
+  if (hasTerminalEvent(events)) {
+    return objectiveError(409, "terminal_exists", origin);
+  }
+
+  const { payload, invalid } = await readJson(request);
+  if (invalid || !payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return objectiveError(400, "invalid_json", origin);
+  }
+  if (typeof payload.audit_id !== "string" || !payload.audit_id.trim() || payload.audit_id.trim().length > MAX_BODY) {
+    return objectiveError(400, "invalid_audit", origin);
+  }
+  if (payload.terminal !== "completed" && payload.terminal !== "failed") {
+    return objectiveError(400, "invalid_terminal", origin);
+  }
+  let reasons = [];
+  if (payload.reasons != null) {
+    if (!Array.isArray(payload.reasons) || payload.reasons.length > 20) {
+      return objectiveError(400, "invalid_reasons", origin);
+    }
+    for (const item of payload.reasons) {
+      if (typeof item !== "string") return objectiveError(400, "invalid_reasons", origin);
+      const reason = item.trim();
+      if (!reason || reason.length > MAX_BODY) return objectiveError(400, "invalid_reasons", origin);
+      reasons.push(reason);
+    }
+  }
+  const auditId = payload.audit_id.trim();
+  const terminal = payload.terminal;
+  if (CRED_RE.test(`${auditId}\n${reasons.join("\n")}`)) {
+    return objectiveError(400, "refused_credential_keywords", origin);
+  }
+
+  const time = new Date().toISOString();
+  const runId = record.run_id;
+  const open = { pass: false, ready: false, approval: false };
+  const nextEvents = events.slice();
+  if (!nextEvents.some((event) => event && event.name === "audit")) {
+    nextEvents.push(
+      objectiveEvent("audit", runId, time, { audit_id: "", ...open }, { audit_id: auditId, ...open })
+    );
+  }
+  nextEvents.push(
+    objectiveEvent(
+      terminal,
+      runId,
+      time,
+      { terminal: "", reasons: [], ...open },
+      { terminal, reasons, ...open }
+    )
+  );
+  const next = {
+    ...record,
+    sentence: record.sentence,
+    artifact: typeof record.artifact === "string" ? record.artifact : "",
+    run_id: runId,
+    events: nextEvents,
+  };
+  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(next));
+  return json(200, objectiveBody(next, false), origin);
+}
+
 async function handleObjectiveRead(env, origin, path) {
   const kv = objectiveKv(env);
   if (!kv) return objectiveError(503, "objective_store_unbound", origin);
@@ -831,6 +937,11 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/objective") {
       return handleObjective(request, env, origin);
+    }
+
+    if (request.method === "POST") {
+      const closePath = objectiveClosePath(url.pathname);
+      if (closePath) return handleObjectiveClose(request, env, origin, closePath);
     }
 
     if (request.method === "GET") {
