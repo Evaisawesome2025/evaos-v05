@@ -14,30 +14,25 @@
  * GET  /health  — liveness (no secrets)
  * OPTIONS       — CORS preflight
  *
- * POST /objective — one sentence on the key stranger-objective. The run id is
- * created once. A clean post stores that sentence, then reads the public
- * joinermill page named in the sentence and may write one artifact on the
- * same record. A later post keeps the sentence and the run id and does not
- * write another artifact. Ready stays false.
- * GET  /objective — read that one record, including its events. No write.
- * GET  /objective/<run_id> — that same record when the run id matches, else 404.
+ * POST /objective — while stranger-objective exists, return that record and
+ * write nothing. The route does not create or recreate that key.
+ * GET  /objective/<run_id> — that run only. Run 1 is read from
+ * stranger-objective when the id matches. Any other id is read from its own
+ * key. A missing id is not created. The read writes nothing.
+ * GET  /objective — the one open run, and only when the objective pointer and
+ * that run's events agree. A terminal Run 1 is not presented as open. The
+ * read writes nothing and does not mix runs.
  * POST /objective/<run_id>/close — Authorization: Bearer <OWNER_BEARER>,
- * the same owner boundary as POST /intent. On the stored record for that
- * run id only, appends one audit event and then exactly one terminal event
- * (completed or failed). The audit cites the caller's audit id and does not
- * record a pass. The terminal carries the caller's failure reasons. The
- * sentence, artifact, and run id stay. Status on a read is a projection of
- * the events. The read writes nothing. Repeating the stored pass-false
- * failed pair does not append. If that pair is stored and status is still
- * SAVED, the same call sets status to failed and does not append. A
- * different terminal or verdict writes nothing.
+ * the same owner boundary as POST /intent. Close of Run 1 writes nothing.
+ * No request path puts stranger-objective.
  *
  * A later run is not stored on stranger-objective. Its key is its run id.
  * That value holds its own events, evidence, and verdict, plus the objective
  * id. Status is derived from that run's events. The pointer key is
  * objective/<objective_id> and holds only objective_id and open_run_id.
  * Events decide the one open run; the pointer is a reference, not a second
- * copy of the run. That write does not put stranger-objective.
+ * copy of the run. The write helper is for tests. This worker's fetch handler
+ * does not call it, and it does not put stranger-objective.
  */
 import {
   DOGFOOD_POLICY,
@@ -589,99 +584,7 @@ async function handleObjective(request, env, origin) {
     return json(200, objectiveBody(current.record, false), origin);
   }
 
-  const { payload, invalid } = await readJson(request);
-  if (invalid || !payload || typeof payload !== "object") {
-    return objectiveError(400, "invalid_json", origin);
-  }
-  if (typeof payload.sentence !== "string" || !payload.sentence.trim()) {
-    return objectiveError(400, "empty_sentence", origin);
-  }
-  const sentence = payload.sentence.trim();
-  if (sentence.length > MAX_BODY) {
-    return objectiveError(400, "body_too_long", origin);
-  }
-  if (CRED_RE.test(sentence)) {
-    return objectiveError(400, "refused_credential_keywords", origin);
-  }
-
-  const time = new Date().toISOString();
-  const applied = applyStrangerObjective(null, { sentence, time });
-  const runId = applied.record.run_id;
-  const events = [
-    objectiveEvent("received", runId, time, { present: false }, { present: false, ready: false }),
-    objectiveEvent(
-      "saved",
-      runId,
-      time,
-      { sentence: "", status: "", ready: false },
-      { sentence, status: "SAVED", ready: false }
-    ),
-    objectiveEvent(
-      "owner",
-      runId,
-      time,
-      { ready: false },
-      { ready: false, approval: false }
-    ),
-    objectiveEvent(
-      "work started",
-      runId,
-      time,
-      { work: "not_started", ready: false, approval: false },
-      { work: "started", ready: false, approval: false }
-    ),
-  ];
-  let record = { ...applied.record, notes: "", artifact: "", events };
-  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
-
-  const page = await readNamedPage(sentence);
-  if (!page.ok) {
-    events.push(
-      objectiveEvent(
-        "failed",
-        runId,
-        time,
-        { artifact: "", status: "SAVED" },
-        { artifact: "", status: "SAVED", unknown: true, ready: false }
-      )
-    );
-    record = { ...record, status: "SAVED", artifact: "", notes: PAGE_READ_UNKNOWN_NOTES, events };
-    await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
-    return json(201, objectiveBody(record, true), origin);
-  }
-
-  const artifact = artifactTextToStore(composeObjectiveArtifact(page, runId), runId);
-  if (!artifact) {
-    record = { ...record, status: "SAVED", artifact: "", notes: PAGE_READ_UNKNOWN_NOTES, events };
-    await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
-    return json(201, objectiveBody(record, true), origin);
-  }
-
-  events.push(objectiveEvent("artifact", runId, time, { artifact: "" }, { artifact }));
-  events.push(
-    objectiveEvent(
-      "record updated",
-      runId,
-      time,
-      { artifact: "", status: "SAVED", ready: false },
-      { artifact, status: "SAVED", ready: false }
-    )
-  );
-  events.push(
-    objectiveEvent(
-      "result",
-      runId,
-      time,
-      { status: "SAVED", ready: false, approval: false },
-      { status: "SAVED", ready: false, approval: false }
-    )
-  );
-  const notes = page.saleQuote
-    ? PAGE_READ_NOTES
-    : `${PAGE_READ_NOTES} Unknown: the page does not say whether it is for sale.`;
-  record = { ...record, status: "SAVED", artifact, notes, events };
-  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(record));
-  return json(201, objectiveBody(record, true), origin);
+  return objectiveError(404, "not_found", origin);
 }
 
 function objectiveEvent(name, runId, time, beforeState, afterState) {
@@ -807,10 +710,6 @@ async function readNamedPage(sentence) {
   }
   if (html.length > 1000000) return { ok: false, hero: "", saleQuote: "", notForSale: false };
   return readObjectivePage(html);
-}
-
-function objectiveView(record) {
-  return objectiveFields(record);
 }
 
 function objectiveReadPath(pathname) {
@@ -1020,111 +919,100 @@ async function handleObjectiveClose(request, env, origin, path) {
   if (current.state !== "objective") {
     return objectiveError(404, "not_found", origin);
   }
-  const record = current.record;
-  if (path.run_id !== record.run_id) {
-    return objectiveError(404, "not_found", origin);
-  }
-
-  const events = Array.isArray(record.events) ? record.events : [];
-  if (passFalseFailedPair(events)) {
-    const { payload, invalid } = await readJson(request);
-    if (invalid || !payload || typeof payload !== "object" || Array.isArray(payload)) {
-      return objectiveError(400, "invalid_json", origin);
-    }
-    if (payload.terminal !== "completed" && payload.terminal !== "failed") {
-      return objectiveError(400, "invalid_terminal", origin);
-    }
-    if (payload.terminal !== "failed" || payload.pass === true) {
-      return objectiveError(409, "terminal_exists", origin);
-    }
-    if (record.status !== "SAVED") {
-      return json(200, objectiveBody(record, false), origin);
-    }
-    const next = {
-      ...record,
-      sentence: record.sentence,
-      artifact: typeof record.artifact === "string" ? record.artifact : "",
-      run_id: record.run_id,
-      notes: record.notes,
-      status: "failed",
-      events,
-    };
-    await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(next));
-    return json(200, objectiveBody(next, false), origin);
-  }
-  if (hasTerminalEvent(events)) {
+  if (current.state === "objective" && path.run_id === current.record.run_id) {
     return objectiveError(409, "terminal_exists", origin);
   }
 
-  const { payload, invalid } = await readJson(request);
-  if (invalid || !payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return objectiveError(400, "invalid_json", origin);
-  }
-  if (typeof payload.audit_id !== "string" || !payload.audit_id.trim() || payload.audit_id.trim().length > MAX_BODY) {
-    return objectiveError(400, "invalid_audit", origin);
-  }
-  if (payload.terminal !== "completed" && payload.terminal !== "failed") {
-    return objectiveError(400, "invalid_terminal", origin);
-  }
-  let reasons = [];
-  if (payload.reasons != null) {
-    if (!Array.isArray(payload.reasons) || payload.reasons.length > 20) {
-      return objectiveError(400, "invalid_reasons", origin);
+  const other = await readObjectiveRun(kv, path.run_id);
+  if (!other) return objectiveError(404, "not_found", origin);
+  return objectiveError(409, "terminal_exists", origin);
+}
+
+function httpObjectiveView(record) {
+  return {
+    ...viewObjectiveRun(record),
+    ready: false,
+    payment_fail: "not_lifted",
+  };
+}
+
+function pointerRecord(raw, key) {
+  const parsed = parseStoredJson(raw);
+  if (!parsed) return null;
+  const keys = Object.keys(parsed);
+  if (keys.length !== 2 || !keys.includes("objective_id") || !keys.includes("open_run_id")) return null;
+  if (typeof parsed.objective_id !== "string" || typeof parsed.open_run_id !== "string") return null;
+  if (!validStoreId(parsed.objective_id) || !validStoreId(parsed.open_run_id)) return null;
+  if (parsed.objective_id === parsed.open_run_id) return null;
+  if (key !== objectivePointerKey(parsed.objective_id)) return null;
+  return { objective_id: parsed.objective_id, open_run_id: parsed.open_run_id };
+}
+
+async function listObjectivePointerKeys(kv) {
+  if (!kv || typeof kv.list !== "function") return [];
+  const found = [];
+  let cursor;
+  for (let page = 0; page < 5; page++) {
+    const listed = await kv.list(cursor ? { prefix: "objective/", cursor } : { prefix: "objective/" });
+    const keys = listed && Array.isArray(listed.keys) ? listed.keys : [];
+    for (const item of keys) {
+      const name = typeof item === "string" ? item : item && item.name;
+      if (typeof name === "string" && name.startsWith("objective/")) found.push(name);
     }
-    for (const item of payload.reasons) {
-      if (typeof item !== "string") return objectiveError(400, "invalid_reasons", origin);
-      const reason = item.trim();
-      if (!reason || reason.length > MAX_BODY) return objectiveError(400, "invalid_reasons", origin);
-      reasons.push(reason);
-    }
+    if (!listed || listed.list_complete !== false || !listed.cursor) break;
+    cursor = listed.cursor;
   }
-  const auditId = payload.audit_id.trim();
-  const terminal = payload.terminal;
-  if (CRED_RE.test(`${auditId}\n${reasons.join("\n")}`)) {
-    return objectiveError(400, "refused_credential_keywords", origin);
+  return found;
+}
+
+/**
+ * The open run is the one record on this objective with no terminal event.
+ * Return it only when the single objective pointer names that same id.
+ */
+async function readAgreedOpenRun(kv) {
+  const run1 = parseStoredJson(await kv.get(STRANGER_OBJECTIVE_KEY));
+  const run1Record = run1 && typeof run1.run_id === "string" && run1.run_id ? run1 : null;
+  const pointerKeys = await listObjectivePointerKeys(kv);
+  const pointers = [];
+  for (const key of pointerKeys) {
+    const pointer = pointerRecord(await kv.get(key), key);
+    if (pointer) pointers.push(pointer);
+  }
+  if (pointers.length !== 1) return null;
+  const pointer = pointers[0];
+
+  const known = [];
+  if (run1Record) known.push(run1Record);
+  if (!run1Record || pointer.open_run_id !== run1Record.run_id) {
+    const pointed = parseStoredJson(await kv.get(pointer.open_run_id));
+    if (
+      pointed &&
+      pointed.run_id === pointer.open_run_id &&
+      pointed.objective_id === pointer.objective_id
+    ) {
+      known.push(pointed);
+    }
   }
 
-  const time = new Date().toISOString();
-  const runId = record.run_id;
-  const open = { pass: false, ready: false, approval: false };
-  const nextEvents = events.slice();
-  if (!nextEvents.some((event) => event && event.name === "audit")) {
-    nextEvents.push(
-      objectiveEvent("audit", runId, time, { audit_id: "", ...open }, { audit_id: auditId, ...open })
-    );
-  }
-  nextEvents.push(
-    objectiveEvent(
-      terminal,
-      runId,
-      time,
-      { terminal: "", reasons: [], ...open },
-      { terminal, reasons, ...open }
-    )
-  );
-  const next = {
-    ...record,
-    sentence: record.sentence,
-    artifact: typeof record.artifact === "string" ? record.artifact : "",
-    run_id: runId,
-    events: nextEvents,
-  };
-  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(next));
-  return json(200, objectiveBody(next, false), origin);
+  const openIds = openRunIds(known);
+  if (openIds.length !== 1 || openIds[0] !== pointer.open_run_id) return null;
+  const open = known.find((record) => record.run_id === openIds[0]);
+  return open || null;
 }
 
 async function handleObjectiveRead(env, origin, path) {
   const kv = objectiveKv(env);
   if (!kv) return objectiveError(503, "objective_store_unbound", origin);
 
-  const current = await readStrangerObjective(kv);
-  if (current.state !== "objective") {
-    return objectiveError(404, "not_found", origin);
+  if (path.kind === "run") {
+    const record = await readObjectiveRun(kv, path.run_id);
+    if (!record) return objectiveError(404, "not_found", origin);
+    return json(200, httpObjectiveView(record), origin);
   }
-  if (path.kind === "run" && path.run_id !== current.record.run_id) {
-    return objectiveError(404, "not_found", origin);
-  }
-  return json(200, objectiveView(current.record), origin);
+
+  const open = await readAgreedOpenRun(kv);
+  if (!open) return objectiveError(404, "not_found", origin);
+  return json(200, httpObjectiveView(open), origin);
 }
 
 export default {

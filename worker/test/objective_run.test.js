@@ -5,11 +5,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import {
+import worker, {
   OBJECTIVE_NEXT_STEP,
   PAGE_READ_NOTES,
   objectivePointerKey,
   readObjectiveRun,
+  resetIngressForTests,
   writeObjectiveRun,
 } from "../src/index.js";
 
@@ -37,6 +38,13 @@ function memoryKv(initial) {
     },
     async delete() {
       throw new Error("objective key must not be deleted");
+    },
+    async list({ prefix } = {}) {
+      const keys = [];
+      for (const name of store.keys()) {
+        if (!prefix || String(name).startsWith(prefix)) keys.push({ name });
+      }
+      return { keys, list_complete: true };
     },
   };
 }
@@ -316,5 +324,186 @@ describe("objective run pointer", () => {
     assert.equal(kv.store.get("stranger-objective"), raw1);
     assert.equal(kv.store.get(RUN2), run2Before);
     assert.equal(kv.store.get(OBJECTIVE_KEY), pointerBefore);
+  });
+
+  it("GET by run id returns only that run and does not create a missing id", async () => {
+    const run1 = terminalRun1();
+    const raw1 = JSON.stringify(run1);
+    const evidence = "run-2 evidence only";
+    const kv = memoryKv([["stranger-objective", raw1]]);
+    await writeObjectiveRun(kv, {
+      objective_id: OBJECTIVE_ID,
+      run_id: RUN2,
+      events: run2Events(),
+      evidence,
+      verdict: null,
+    });
+    kv.puts.length = 0;
+    const env = { OBJECTIVE: kv };
+
+    const first = await worker.fetch(new Request(`https://worker.test/objective/${RUN1}`), env);
+    assert.equal(first.status, 200);
+    const firstBody = await first.json();
+    const second = await worker.fetch(new Request(`https://worker.test/objective/${RUN2}`), env);
+    assert.equal(second.status, 200);
+    const secondBody = await second.json();
+    assert.equal(firstBody.run_id, RUN1);
+    assert.equal(secondBody.run_id, RUN2);
+    assert.equal(firstBody.sentence, run1.sentence);
+    assert.equal(firstBody.status, "failed");
+    assert.equal(firstBody.evidence, undefined);
+    assert.equal(secondBody.evidence, evidence);
+    assert.equal(secondBody.sentence, undefined);
+    assert.equal(secondBody.artifact, undefined);
+    assert.equal(secondBody.status, "SAVED");
+    assert.equal(JSON.stringify(firstBody).includes(evidence), false);
+    assert.equal(JSON.stringify(secondBody).includes(run1.sentence), false);
+    assert.equal(JSON.stringify(secondBody).includes(RUN1), false);
+
+    const missingId = "c".repeat(32);
+    const missing = await worker.fetch(new Request(`https://worker.test/objective/${missingId}`), env);
+    assert.equal(missing.status, 404);
+    assert.equal((await missing.json()).error, "not_found");
+    assert.equal(kv.store.has(missingId), false);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+  });
+
+  it("unscoped GET returns the open run only when the pointer and the events agree", async () => {
+    const run1 = terminalRun1();
+    const raw1 = JSON.stringify(run1);
+    const evidence = "run-2 evidence only";
+    const kv = memoryKv([["stranger-objective", raw1]]);
+    const env = { OBJECTIVE: kv };
+
+    const terminalOnly = await worker.fetch(new Request("https://worker.test/objective"), env);
+    assert.equal(terminalOnly.status, 404);
+    assert.equal((await terminalOnly.json()).run_id, undefined);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+
+    await writeObjectiveRun(kv, {
+      objective_id: OBJECTIVE_ID,
+      run_id: RUN2,
+      events: run2Events(),
+      evidence,
+      verdict: null,
+    });
+    kv.puts.length = 0;
+
+    const open = await worker.fetch(new Request("https://worker.test/objective"), env);
+    assert.equal(open.status, 200);
+    const body = await open.json();
+    assert.equal(body.run_id, RUN2);
+    assert.equal(body.evidence, evidence);
+    assert.equal(body.objective_id, OBJECTIVE_ID);
+    assert.equal(body.sentence, undefined);
+    assert.equal(body.artifact, undefined);
+    assert.equal(body.status, "SAVED");
+    assert.equal(JSON.stringify(body).includes(run1.sentence), false);
+    assert.equal(JSON.stringify(body).includes(RUN1), false);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+
+    const pointerBefore = kv.store.get(OBJECTIVE_KEY);
+    kv.store.set(
+      OBJECTIVE_KEY,
+      JSON.stringify({ objective_id: OBJECTIVE_ID, open_run_id: RUN1 })
+    );
+    const disagreed = await worker.fetch(new Request("https://worker.test/objective"), env);
+    assert.equal(disagreed.status, 404);
+    assert.equal((await disagreed.json()).run_id, undefined);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+    assert.equal(kv.store.get(OBJECTIVE_KEY), JSON.stringify({ objective_id: OBJECTIVE_ID, open_run_id: RUN1 }));
+    kv.store.set(OBJECTIVE_KEY, pointerBefore);
+  });
+
+  it("unscoped GET does not mix two open runs", async () => {
+    const run1 = openRun1();
+    const raw1 = JSON.stringify(run1);
+    const evidence = "run-2 evidence only";
+    const kv = memoryKv([
+      ["stranger-objective", raw1],
+      [
+        RUN2,
+        JSON.stringify({
+          run_id: RUN2,
+          objective_id: OBJECTIVE_ID,
+          events: run2Events(),
+          evidence,
+          verdict: null,
+        }),
+      ],
+      [OBJECTIVE_KEY, JSON.stringify({ objective_id: OBJECTIVE_ID, open_run_id: RUN2 })],
+    ]);
+    const res = await worker.fetch(new Request("https://worker.test/objective"), { OBJECTIVE: kv });
+    assert.equal(res.status, 404);
+    const body = await res.json();
+    assert.equal(body.error, "not_found");
+    assert.equal(body.run_id, undefined);
+    assert.equal(body.sentence, undefined);
+    assert.equal(body.evidence, undefined);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+  });
+
+  it("public POST and close do not put stranger-objective", async () => {
+    resetIngressForTests();
+    const run1 = terminalRun1();
+    const raw1 = JSON.stringify(run1);
+    const kv = memoryKv([["stranger-objective", raw1]]);
+    const env = {
+      OBJECTIVE: kv,
+      OWNER_BEARER: "owner-token",
+      GH_PAT: "test-pat-not-real",
+    };
+
+    const post = await worker.fetch(
+      new Request("https://worker.test/objective", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "https://joinermill.com" },
+        body: JSON.stringify({ sentence: "A replacement sentence" }),
+      }),
+      env
+    );
+    assert.equal(post.status, 200);
+    const posted = await post.json();
+    assert.equal(posted.run_id, RUN1);
+    assert.equal(posted.sentence, run1.sentence);
+    assert.equal(posted.saved, false);
+    assert.equal(posted.evidence, undefined);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+
+    const close = await worker.fetch(
+      new Request(`https://worker.test/objective/${RUN1}/close`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://joinermill.com",
+          Authorization: "Bearer owner-token",
+        },
+        body: JSON.stringify({ audit_id: "AUDIT-FIXTURE", terminal: "failed", pass: false }),
+      }),
+      env
+    );
+    assert.equal(close.status, 409);
+    assert.equal((await close.json()).error, "terminal_exists");
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw1);
+
+    const empty = memoryKv();
+    const recreate = await worker.fetch(
+      new Request("https://worker.test/objective", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Origin: "https://joinermill.com" },
+        body: JSON.stringify({ sentence: "Do not recreate the key" }),
+      }),
+      { OBJECTIVE: empty }
+    );
+    assert.equal(recreate.status, 404);
+    assert.equal(empty.puts.length, 0);
+    assert.equal(empty.store.has("stranger-objective"), false);
   });
 });
