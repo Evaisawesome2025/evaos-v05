@@ -13,6 +13,12 @@
  * POST /metering/complete  — same bearer; settles a hold into a JOB_COST row.
  * GET  /health  — liveness (no secrets)
  * OPTIONS       — CORS preflight
+ *
+ * POST /objective — public save from https://joinermill.com or
+ * https://www.joinermill.com. No bearer. One KV key, stranger-objective,
+ * on the OBJECTIVE binding. The sentence is saved once and is not replaced.
+ * The same record can gain notes later. This post does not write an artifact.
+ * Paid research is not called; notes say what is unknown. Ready stays false.
  */
 import {
   DOGFOOD_POLICY,
@@ -29,6 +35,14 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8765",
 ];
 const MAX_BODY = 240;
+const STRANGER_OBJECTIVE_KEY = "stranger-objective";
+const OBJECTIVE_ORIGINS = Object.freeze([
+  "https://joinermill.com",
+  "https://www.joinermill.com",
+]);
+export const PAID_RESEARCH_UNKNOWN_NOTES =
+  "Paid research call blocked. Unknown: what this objective would find, what it would cost, and what result would follow. No result was written.";
+export const OBJECTIVE_NEXT_STEP = "paid_research (does not run)";
 const MAX_PER_WINDOW = 10;
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const REPO = "Evaisawesome2025/evaos-v05";
@@ -388,6 +402,155 @@ async function handleComplete(request, env, origin) {
   return json(200, { ok: true, settled: true, capture: false, result: result.result }, origin);
 }
 
+function hasText(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function objectiveKv(env) {
+  const kv = env && env.OBJECTIVE;
+  if (!kv || kv === env.METERING_KV) return null;
+  if (typeof kv.get !== "function" || typeof kv.put !== "function") return null;
+  return kv;
+}
+
+/**
+ * Sentence is immutable once stored. Notes may be appended on the same record.
+ * An artifact is stored only when artifactProduced is set after real work.
+ * The sentence-saving post does not set that flag.
+ */
+export function applyStrangerObjective(existing, input = {}) {
+  if (existing && typeof existing === "object" && hasText(existing.sentence)) {
+    const record = { ...existing, sentence: existing.sentence };
+    let changed = false;
+
+    if (hasText(input.notes)) {
+      const addition = input.notes.trim();
+      const prior = hasText(record.notes) ? record.notes.trim() : "";
+      if (!prior) {
+        record.notes = addition;
+        changed = true;
+      } else if (!prior.split("\n").includes(addition)) {
+        record.notes = `${prior}\n${addition}`;
+        changed = true;
+      }
+    } else if (!hasText(record.notes)) {
+      record.notes = PAID_RESEARCH_UNKNOWN_NOTES;
+      changed = true;
+    }
+
+    if (input.artifactProduced === true && hasText(input.artifact)) {
+      const produced = input.artifact.trim();
+      if (record.artifact !== produced) {
+        record.artifact = produced;
+        changed = true;
+      }
+    }
+
+    return { record, created: false, changed, run_id: record.run_id };
+  }
+
+  const sentence = hasText(input.sentence) ? input.sentence.trim() : "";
+  if (!sentence) return { error: "empty_sentence" };
+
+  const time = typeof input.time === "string" && input.time ? input.time : new Date().toISOString();
+  const record = {
+    sentence,
+    run_id: newIntentId(),
+    status: "SAVED",
+    notes: PAID_RESEARCH_UNKNOWN_NOTES,
+    artifact: "",
+    time,
+    next_step: OBJECTIVE_NEXT_STEP,
+  };
+  return { record, created: true, changed: true, run_id: record.run_id };
+}
+
+async function readStrangerObjective(kv) {
+  const raw = await kv.get(STRANGER_OBJECTIVE_KEY);
+  if (raw == null) return { state: "missing" };
+  let parsed = raw;
+  if (typeof raw === "string") {
+    if (raw.trim() === "") return { state: "missing" };
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return { state: "held" };
+    }
+  }
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    Array.isArray(parsed) ||
+    typeof parsed.sentence !== "string" ||
+    parsed.sentence.trim() === ""
+  ) {
+    return { state: "held" };
+  }
+  return { state: "objective", record: parsed };
+}
+
+function objectiveBody(record, saved) {
+  return {
+    sentence: record.sentence,
+    run_id: record.run_id,
+    status: record.status,
+    notes: record.notes,
+    artifact: typeof record.artifact === "string" ? record.artifact : "",
+    time: record.time,
+    next_step: record.next_step,
+    saved,
+    ready: false,
+    payment_fail: "not_lifted",
+  };
+}
+
+function objectiveError(status, error, origin) {
+  return json(status, { status: "FAILED", error, ready: false, payment_fail: "not_lifted" }, origin);
+}
+
+async function handleObjective(request, env, origin) {
+  if (!OBJECTIVE_ORIGINS.includes(origin)) {
+    return objectiveError(403, "origin_denied", origin);
+  }
+  const kv = objectiveKv(env);
+  if (!kv) return objectiveError(503, "objective_store_unbound", origin);
+
+  const current = await readStrangerObjective(kv);
+  if (current.state === "held") {
+    return objectiveError(409, "objective_record_held", origin);
+  }
+
+  if (current.state === "objective") {
+    const applied = applyStrangerObjective(current.record, {});
+    if (applied.changed) {
+      await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(applied.record));
+    }
+    return json(200, objectiveBody(applied.record, false), origin);
+  }
+
+  const { payload, invalid } = await readJson(request);
+  if (invalid || !payload || typeof payload !== "object") {
+    return objectiveError(400, "invalid_json", origin);
+  }
+  if (typeof payload.sentence !== "string" || !payload.sentence.trim()) {
+    return objectiveError(400, "empty_sentence", origin);
+  }
+  const sentence = payload.sentence.trim();
+  if (sentence.length > MAX_BODY) {
+    return objectiveError(400, "body_too_long", origin);
+  }
+  if (CRED_RE.test(sentence)) {
+    return objectiveError(400, "refused_credential_keywords", origin);
+  }
+
+  const applied = applyStrangerObjective(null, {
+    sentence,
+    time: new Date().toISOString(),
+  });
+  await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(applied.record));
+  return json(201, objectiveBody(applied.record, true), origin);
+}
+
 export default {
   async fetch(request, env = {}) {
     const origin = request.headers.get("Origin") || "";
@@ -418,6 +581,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/metering/complete") {
       return handleComplete(request, env, origin);
+    }
+
+    if (request.method === "POST" && url.pathname === "/objective") {
+      return handleObjective(request, env, origin);
     }
 
     return json(404, { status: "FAILED", error: "not_found" }, origin);

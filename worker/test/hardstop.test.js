@@ -7,7 +7,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import worker, { resetIngressForTests } from "../src/index.js";
+import worker, {
+  OBJECTIVE_NEXT_STEP,
+  PAID_RESEARCH_UNKNOWN_NOTES,
+  applyStrangerObjective,
+  resetIngressForTests,
+} from "../src/index.js";
 import {
   DOGFOOD_POLICY,
   applyComplete,
@@ -461,5 +466,376 @@ describe("source wiring", () => {
     assert.ok(pre > 0 && write > pre);
     assert.equal(/stripe/i.test(src + hardstop), false);
     assert.equal(/ghp_|gho_|github_pat_/.test(src + hardstop), false);
+  });
+
+  it("binds OBJECTIVE on its own namespace and leaves METERING_KV unchanged", () => {
+    const toml = fs.readFileSync(path.join(__dirname, "../wrangler.toml"), "utf8");
+    assert.match(toml, /binding = "METERING_KV"/);
+    assert.match(toml, /id = "ca78fb121eb746db9097b63328b49631"/);
+    assert.match(toml, /binding = "OBJECTIVE"/);
+    assert.match(toml, /id = "f9c1e824a1d04be1bb2cbcbcabf63d2f"/);
+    assert.match(toml, /evaos-v05-ask--OBJECTIVE/);
+    assert.equal(toml.split("ca78fb121eb746db9097b63328b49631").length - 1, 1);
+    assert.equal(toml.split("f9c1e824a1d04be1bb2cbcbcabf63d2f").length - 1, 1);
+    const metering = toml.indexOf('binding = "METERING_KV"');
+    const objective = toml.indexOf('binding = "OBJECTIVE"');
+    assert.ok(metering > 0 && objective > metering);
+  });
+
+  it("keeps the objective route off the bearer, GitHub, and metering paths", () => {
+    const src = fs.readFileSync(path.join(__dirname, "../src/index.js"), "utf8");
+    const start = src.indexOf("async function handleObjective");
+    const end = src.indexOf("\nexport default");
+    const fn = src.slice(start, end);
+    assert.ok(start > 0 && end > start);
+    assert.equal(fn.includes("METERING_KV"), false);
+    assert.equal(fn.includes("createIssue"), false);
+    assert.equal(fn.includes("OWNER_BEARER"), false);
+    assert.equal(fn.includes("api.github.com"), false);
+    assert.equal(fn.includes(".delete("), false);
+    assert.equal(/stripe/i.test(fn), false);
+    assert.equal(fn.includes('url.pathname === "/objective"') || src.includes('pathname === "/objective"'), true);
+  });
+});
+
+describe("stranger objective save", () => {
+  let previousFetch;
+
+  beforeEach(() => {
+    previousFetch = globalThis.fetch;
+    globalThis.fetch = async () => {
+      throw new Error("objective route must not call out");
+    };
+  });
+
+  afterEach(() => {
+    globalThis.fetch = previousFetch;
+  });
+
+  function memoryKv(initial) {
+    const store = new Map(initial || []);
+    const puts = [];
+    return {
+      store,
+      puts,
+      async get(key) {
+        assert.equal(key, "stranger-objective");
+        return store.has(key) ? store.get(key) : null;
+      },
+      async put(key, value) {
+        assert.equal(key, "stranger-objective");
+        puts.push(value);
+        store.set(key, value);
+      },
+      async delete() {
+        throw new Error("objective key must not be deleted");
+      },
+    };
+  }
+
+  function meteringKv() {
+    return {
+      async get() {
+        throw new Error("METERING_KV read");
+      },
+      async put() {
+        throw new Error("METERING_KV write");
+      },
+      async delete() {
+        throw new Error("METERING_KV delete");
+      },
+    };
+  }
+
+  function postObjective(sentence, origin = "https://joinermill.com", extra = {}) {
+    return new Request("https://worker.test/objective", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: origin,
+      },
+      body: JSON.stringify({ sentence, ...extra }),
+    });
+  }
+
+  it("keeps the sentence and can still gain notes; artifact waits for real work", () => {
+    const first = applyStrangerObjective(null, {
+      sentence: "  Keep this sentence  ",
+      time: "2026-10-04T12:00:00.000Z",
+      notes: "client notes must not replace the unknown",
+      artifact: "https://example.com/not-produced",
+      artifactProduced: true,
+    });
+    assert.equal(first.created, true);
+    assert.equal(first.record.sentence, "Keep this sentence");
+    assert.equal(first.record.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+    assert.equal(first.record.artifact, "");
+    assert.equal(first.record.status, "SAVED");
+    assert.equal(first.record.next_step, OBJECTIVE_NEXT_STEP);
+    assert.equal(first.record.time, "2026-10-04T12:00:00.000Z");
+    assert.equal(first.record.result, undefined);
+    assert.equal(first.record.score, undefined);
+    assert.equal(first.record.date, undefined);
+    assert.match(PAID_RESEARCH_UNKNOWN_NOTES, /Unknown:/);
+    assert.match(PAID_RESEARCH_UNKNOWN_NOTES, /No result was written/);
+    assert.match(OBJECTIVE_NEXT_STEP, /does not run/);
+
+    const noted = applyStrangerObjective(first.record, {
+      sentence: "A second sentence",
+      notes: "Source list for this sentence is unknown.",
+      artifact: "https://example.com/fake",
+    });
+    assert.equal(noted.created, false);
+    assert.equal(noted.changed, true);
+    assert.equal(noted.record.sentence, "Keep this sentence");
+    assert.equal(noted.record.run_id, first.record.run_id);
+    assert.equal(noted.record.artifact, "");
+    assert.match(noted.record.notes, /Paid research call blocked/);
+    assert.match(noted.record.notes, /Source list for this sentence is unknown/);
+
+    const again = applyStrangerObjective(noted.record, {
+      sentence: "A third sentence",
+      notes: "Source list for this sentence is unknown.",
+    });
+    assert.equal(again.changed, false);
+    assert.equal(again.record.sentence, "Keep this sentence");
+    assert.equal(again.record.notes, noted.record.notes);
+
+    const produced = applyStrangerObjective(noted.record, {
+      sentence: "A third sentence",
+      artifact: "evidence://real-work",
+      artifactProduced: true,
+    });
+    assert.equal(produced.record.sentence, "Keep this sentence");
+    assert.equal(produced.record.run_id, first.record.run_id);
+    assert.equal(produced.record.artifact, "evidence://real-work");
+    assert.match(produced.record.notes, /Source list for this sentence is unknown/);
+  });
+
+  it("saves one sentence from joinermill and does not write an artifact", async () => {
+    const kv = memoryKv();
+    const started = Date.now();
+    const res = await worker.fetch(
+      postObjective("Find the first honest stranger objective", "https://www.joinermill.com", {
+        artifact: "https://example.com/not-real",
+        artifactProduced: true,
+        result: "invented",
+        score: 99,
+        date: "1999-01-01",
+        notes: "client note",
+        time: "2000-01-01T00:00:00.000Z",
+      }),
+      { OBJECTIVE: kv, METERING_KV: meteringKv() }
+    );
+    assert.equal(res.status, 201);
+    const data = await res.json();
+    assert.equal(data.saved, true);
+    assert.equal(data.sentence, "Find the first honest stranger objective");
+    assert.equal(data.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+    assert.equal(data.artifact, "");
+    assert.equal(data.status, "SAVED");
+    assert.equal(data.next_step, OBJECTIVE_NEXT_STEP);
+    assert.equal(data.ready, false);
+    assert.equal(data.payment_fail, "not_lifted");
+    assert.equal(data.result, undefined);
+    assert.equal(data.score, undefined);
+    assert.equal(data.date, undefined);
+    assert.equal(data.time === "2000-01-01T00:00:00.000Z", false);
+    assert.ok(Math.abs(Date.parse(data.time) - started) < 5000);
+    assert.match(data.run_id, /^[0-9a-f]{32}$/);
+    assert.equal(kv.store.size, 1);
+    assert.equal(kv.puts.length, 1);
+    const saved = JSON.parse(kv.puts[0]);
+    assert.deepEqual(Object.keys(saved).sort(), [
+      "artifact",
+      "next_step",
+      "notes",
+      "run_id",
+      "sentence",
+      "status",
+      "time",
+    ]);
+    assert.equal(saved.artifact, "");
+    assert.equal(saved.sentence, data.sentence);
+  });
+
+  it("does not replace a stored sentence and returns its run id", async () => {
+    const kv = memoryKv([
+      [
+        "stranger-objective",
+        JSON.stringify({
+          sentence: "Already saved",
+          run_id: "run-existing",
+          status: "SAVED",
+          notes: PAID_RESEARCH_UNKNOWN_NOTES,
+          artifact: "evidence://real-work",
+          time: "2026-10-04T12:00:00.000Z",
+          next_step: OBJECTIVE_NEXT_STEP,
+        }),
+      ],
+    ]);
+    const res = await worker.fetch(
+      new Request("https://worker.test/objective", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://joinermill.com",
+          Authorization: "Bearer not-the-owner",
+        },
+        body: "not-json { sentence: \"A second sentence\" }",
+      }),
+      { OBJECTIVE: kv, METERING_KV: meteringKv(), OWNER_BEARER: "owner-token", GH_PAT: "test-pat-not-real" }
+    );
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.saved, false);
+    assert.equal(data.run_id, "run-existing");
+    assert.equal(data.sentence, "Already saved");
+    assert.equal(data.artifact, "evidence://real-work");
+    assert.equal(data.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+    assert.equal(data.ready, false);
+    assert.equal(data.payment_fail, "not_lifted");
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 1);
+    assert.equal(JSON.parse(kv.store.get("stranger-objective")).sentence, "Already saved");
+  });
+
+  it("fills unknown notes on the same record without changing the sentence", async () => {
+    const kv = memoryKv([
+      [
+        "stranger-objective",
+        JSON.stringify({
+          sentence: "Already saved",
+          run_id: "run-existing",
+          status: "SAVED",
+          notes: "",
+          artifact: "",
+          time: "2026-10-04T12:00:00.000Z",
+          next_step: OBJECTIVE_NEXT_STEP,
+        }),
+      ],
+    ]);
+    const res = await worker.fetch(
+      postObjective("A second sentence", "https://joinermill.com"),
+      { OBJECTIVE: kv, METERING_KV: meteringKv() }
+    );
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.run_id, "run-existing");
+    assert.equal(data.sentence, "Already saved");
+    assert.equal(data.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+    assert.equal(data.artifact, "");
+    assert.equal(data.saved, false);
+    assert.equal(kv.puts.length, 1);
+    const saved = JSON.parse(kv.puts[0]);
+    assert.equal(saved.sentence, "Already saved");
+    assert.equal(saved.run_id, "run-existing");
+    assert.equal(saved.artifact, "");
+    assert.equal(saved.notes, PAID_RESEARCH_UNKNOWN_NOTES);
+  });
+
+  it("refuses other origins, an unbound store, and a held key without writing", async () => {
+    const kv = memoryKv();
+    const denied = await worker.fetch(
+      postObjective("from pages", "https://evaisawesome2025.github.io"),
+      { OBJECTIVE: kv, METERING_KV: meteringKv() }
+    );
+    assert.equal(denied.status, 403);
+    const deniedBody = await denied.json();
+    assert.equal(deniedBody.error, "origin_denied");
+    assert.equal(deniedBody.ready, false);
+    assert.equal(kv.puts.length, 0);
+
+    const local = await worker.fetch(postObjective("from local", "http://127.0.0.1:8765"), {
+      OBJECTIVE: kv,
+    });
+    assert.equal(local.status, 403);
+    assert.equal(kv.puts.length, 0);
+
+    const unbound = await worker.fetch(postObjective("needs a store"), { METERING_KV: meteringKv() });
+    assert.equal(unbound.status, 503);
+    const unboundBody = await unbound.json();
+    assert.equal(unboundBody.error, "objective_store_unbound");
+    assert.equal(unboundBody.ready, false);
+    assert.equal(unboundBody.payment_fail, "not_lifted");
+
+    const shared = memoryKv();
+    const sameStore = await worker.fetch(postObjective("do not use metering"), {
+      OBJECTIVE: shared,
+      METERING_KV: shared,
+    });
+    assert.equal(sameStore.status, 503);
+    assert.equal(shared.puts.length, 0);
+
+    const held = memoryKv([["stranger-objective", "not-a-record"]]);
+    const heldRes = await worker.fetch(postObjective("do not overwrite"), {
+      OBJECTIVE: held,
+      METERING_KV: meteringKv(),
+    });
+    assert.equal(heldRes.status, 409);
+    const heldBody = await heldRes.json();
+    assert.equal(heldBody.error, "objective_record_held");
+    assert.equal(heldBody.run_id, undefined);
+    assert.equal(held.puts.length, 0);
+    assert.equal(held.store.get("stranger-objective"), "not-a-record");
+  });
+
+  it("does not save an empty sentence and leaves bearer routes unchanged", async () => {
+    const kv = memoryKv();
+    const env = {
+      OBJECTIVE: kv,
+      METERING_KV: meteringKv(),
+      OWNER_BEARER: "owner-token",
+      GH_PAT: "test-pat-not-real",
+    };
+    const empty = await worker.fetch(postObjective("   "), env);
+    assert.equal(empty.status, 400);
+    const emptyBody = await empty.json();
+    assert.equal(emptyBody.error, "empty_sentence");
+    assert.equal(kv.puts.length, 0);
+
+    const intent = await worker.fetch(
+      new Request("https://worker.test/intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://joinermill.com",
+        },
+        body: JSON.stringify({ type: "ask", body: "still needs the bearer" }),
+      }),
+      env
+    );
+    assert.equal(intent.status, 401);
+    const intentBody = await intent.json();
+    assert.equal(intentBody.error, "unauthorized");
+
+    const complete = await worker.fetch(
+      new Request("https://worker.test/metering/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://joinermill.com",
+        },
+        body: JSON.stringify({ job_id: "job-1" }),
+      }),
+      env
+    );
+    assert.equal(complete.status, 401);
+
+    const health = await worker.fetch(new Request("https://worker.test/health"));
+    const healthBody = await health.json();
+    assert.equal(healthBody.ready, false);
+    assert.equal(healthBody.payment_fail, "not_lifted");
+
+    const missed = await worker.fetch(
+      new Request("https://worker.test/objective/", {
+        method: "POST",
+        headers: { Origin: "https://joinermill.com", "Content-Type": "application/json" },
+        body: JSON.stringify({ sentence: "wrong path" }),
+      }),
+      env
+    );
+    assert.equal(missed.status, 404);
+    assert.equal(kv.puts.length, 0);
   });
 });
