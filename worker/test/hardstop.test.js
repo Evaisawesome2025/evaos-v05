@@ -838,4 +838,125 @@ describe("stranger objective save", () => {
     assert.equal(missed.status, 404);
     assert.equal(kv.puts.length, 0);
   });
+
+  function storedObjective() {
+    return {
+      sentence: "Already saved",
+      run_id: "run-existing",
+      status: "SAVED",
+      notes: PAID_RESEARCH_UNKNOWN_NOTES,
+      artifact: "",
+      time: "2026-10-04T12:00:00.000Z",
+      next_step: OBJECTIVE_NEXT_STEP,
+    };
+  }
+
+  it("reads the stored objective and the matching run id without writing", async () => {
+    const record = storedObjective();
+    const kv = memoryKv([["stranger-objective", JSON.stringify(record)]]);
+    const before = kv.store.get("stranger-objective");
+    const env = { OBJECTIVE: kv, METERING_KV: meteringKv() };
+
+    const list = await worker.fetch(new Request("https://worker.test/objective"), env);
+    assert.equal(list.status, 200);
+    const listed = await list.json();
+    assert.equal(listed.sentence, record.sentence);
+    assert.equal(listed.run_id, record.run_id);
+    assert.equal(listed.status, record.status);
+    assert.equal(listed.notes, record.notes);
+    assert.equal(listed.artifact, "");
+    assert.equal(listed.time, record.time);
+    assert.equal(listed.next_step, record.next_step);
+    assert.equal(listed.ready, false);
+    assert.equal(listed.payment_fail, "not_lifted");
+    assert.equal(listed.saved, undefined);
+    assert.equal(listed.result, undefined);
+    assert.equal(listed.score, undefined);
+
+    const one = await worker.fetch(new Request("https://worker.test/objective/run-existing"), env);
+    assert.equal(one.status, 200);
+    const read = await one.json();
+    assert.deepEqual(read, listed);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 1);
+    assert.equal(kv.store.get("stranger-objective"), before);
+  });
+
+  it("returns 404 when the key is missing or the run id does not match", async () => {
+    const empty = memoryKv();
+    const missing = await worker.fetch(new Request("https://worker.test/objective"), {
+      OBJECTIVE: empty,
+      METERING_KV: meteringKv(),
+    });
+    assert.equal(missing.status, 404);
+    const missingBody = await missing.json();
+    assert.equal(missingBody.error, "not_found");
+    assert.equal(missingBody.ready, false);
+    assert.equal(missingBody.payment_fail, "not_lifted");
+    assert.equal(empty.puts.length, 0);
+
+    const missingRun = await worker.fetch(new Request("https://worker.test/objective/run-existing"), {
+      OBJECTIVE: empty,
+      METERING_KV: meteringKv(),
+    });
+    assert.equal(missingRun.status, 404);
+    assert.equal(empty.store.size, 0);
+
+    const kv = memoryKv([["stranger-objective", JSON.stringify(storedObjective())]]);
+    const other = await worker.fetch(new Request("https://worker.test/objective/run-other"), {
+      OBJECTIVE: kv,
+      METERING_KV: meteringKv(),
+    });
+    assert.equal(other.status, 404);
+    const otherBody = await other.json();
+    assert.equal(otherBody.error, "not_found");
+    assert.equal(otherBody.run_id, undefined);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 1);
+    assert.equal(JSON.parse(kv.store.get("stranger-objective")).sentence, "Already saved");
+
+    const nested = await worker.fetch(new Request("https://worker.test/objective/run-existing/notes"), {
+      OBJECTIVE: kv,
+    });
+    assert.equal(nested.status, 404);
+    const slash = await worker.fetch(new Request("https://worker.test/objective/"), { OBJECTIVE: kv });
+    assert.equal(slash.status, 404);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 1);
+  });
+
+  it("does not read METERING_KV and does not backfill notes on a read", async () => {
+    const kv = memoryKv([
+      [
+        "stranger-objective",
+        JSON.stringify({
+          sentence: "Already saved",
+          run_id: "run-existing",
+          status: "SAVED",
+          notes: "",
+          artifact: "",
+          time: "2026-10-04T12:00:00.000Z",
+          next_step: OBJECTIVE_NEXT_STEP,
+        }),
+      ],
+    ]);
+    const res = await worker.fetch(new Request("https://worker.test/objective/run-existing"), {
+      OBJECTIVE: kv,
+      METERING_KV: meteringKv(),
+    });
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.notes, "");
+    assert.equal(data.artifact, "");
+    assert.equal(data.sentence, "Already saved");
+    assert.equal(kv.puts.length, 0);
+
+    const unbound = await worker.fetch(new Request("https://worker.test/objective"), {
+      METERING_KV: meteringKv(),
+    });
+    assert.equal(unbound.status, 503);
+    const unboundBody = await unbound.json();
+    assert.equal(unboundBody.error, "objective_store_unbound");
+    assert.equal(unboundBody.ready, false);
+  });
 });
