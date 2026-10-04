@@ -10,7 +10,6 @@ import { fileURLToPath } from "node:url";
 import worker, {
   OBJECTIVE_NEXT_STEP,
   PAGE_READ_NOTES,
-  PAGE_READ_UNKNOWN_NOTES,
   PAID_RESEARCH_UNKNOWN_NOTES,
   applyStrangerObjective,
   artifactTextToStore,
@@ -525,13 +524,19 @@ describe("stranger objective save", () => {
       store,
       puts,
       async get(key) {
-        assert.equal(key, "stranger-objective");
         return store.has(key) ? store.get(key) : null;
       },
       async put(key, value) {
-        assert.equal(key, "stranger-objective");
+        assert.notEqual(key, "stranger-objective");
         puts.push(value);
         store.set(key, value);
+      },
+      async list({ prefix } = {}) {
+        const keys = [];
+        for (const name of store.keys()) {
+          if (!prefix || String(name).startsWith(prefix)) keys.push({ name });
+        }
+        return { keys, list_complete: true };
       },
       async delete() {
         throw new Error("objective key must not be deleted");
@@ -618,9 +623,8 @@ describe("stranger objective save", () => {
     assert.match(produced.record.notes, /Source list for this sentence is unknown/);
   });
 
-  it("saves one sentence from joinermill and does not write an artifact", async () => {
+  it("does not create stranger-objective from a public post", async () => {
     const kv = memoryKv();
-    const started = Date.now();
     const res = await worker.fetch(
       postObjective("Find the first honest stranger objective", "https://www.joinermill.com", {
         artifact: "https://example.com/not-real",
@@ -633,42 +637,15 @@ describe("stranger objective save", () => {
       }),
       { OBJECTIVE: kv, METERING_KV: meteringKv() }
     );
-    assert.equal(res.status, 201);
+    assert.equal(res.status, 404);
     const data = await res.json();
-    assert.equal(data.saved, true);
-    assert.equal(data.sentence, "Find the first honest stranger objective");
-    assert.equal(data.notes, PAGE_READ_UNKNOWN_NOTES);
-    assert.equal(data.artifact, "");
-    assert.equal(data.status, "SAVED");
-    assert.equal(data.next_step, OBJECTIVE_NEXT_STEP);
+    assert.equal(data.error, "not_found");
     assert.equal(data.ready, false);
     assert.equal(data.payment_fail, "not_lifted");
-    assert.equal(data.result, undefined);
-    assert.equal(data.score, undefined);
-    assert.equal(data.date, undefined);
-    assert.equal(data.time === "2000-01-01T00:00:00.000Z", false);
-    assert.ok(Math.abs(Date.parse(data.time) - started) < 5000);
-    assert.match(data.run_id, /^[0-9a-f]{32}$/);
-    assert.deepEqual(
-      data.events.map((event) => event.name),
-      ["received", "saved", "owner", "work started", "failed"]
-    );
-    assert.equal(kv.store.size, 1);
-    assert.equal(kv.puts.length, 2);
-    const saved = JSON.parse(kv.store.get("stranger-objective"));
-    assert.deepEqual(Object.keys(saved).sort(), [
-      "artifact",
-      "events",
-      "next_step",
-      "notes",
-      "run_id",
-      "sentence",
-      "status",
-      "time",
-    ]);
-    assert.equal(saved.artifact, "");
-    assert.equal(saved.sentence, data.sentence);
-    assert.equal(saved.events.some((event) => event.name === "audit" || event.name === "completed"), false);
+    assert.equal(data.saved, undefined);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 0);
+    assert.equal(kv.store.has("stranger-objective"), false);
   });
 
   it("does not replace a stored sentence and returns its run id", async () => {
@@ -801,10 +778,11 @@ describe("stranger objective save", () => {
       GH_PAT: "test-pat-not-real",
     };
     const empty = await worker.fetch(postObjective("   "), env);
-    assert.equal(empty.status, 400);
+    assert.equal(empty.status, 404);
     const emptyBody = await empty.json();
-    assert.equal(emptyBody.error, "empty_sentence");
+    assert.equal(emptyBody.error, "not_found");
     assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.has("stranger-objective"), false);
 
     const intent = await worker.fetch(
       new Request("https://worker.test/intent", {
@@ -870,25 +848,24 @@ describe("stranger objective save", () => {
     const env = { OBJECTIVE: kv, METERING_KV: meteringKv() };
 
     const list = await worker.fetch(new Request("https://worker.test/objective"), env);
-    assert.equal(list.status, 200);
-    const listed = await list.json();
-    assert.equal(listed.sentence, record.sentence);
-    assert.equal(listed.run_id, record.run_id);
-    assert.equal(listed.status, record.status);
-    assert.equal(listed.notes, record.notes);
-    assert.equal(listed.artifact, "");
-    assert.equal(listed.time, record.time);
-    assert.equal(listed.next_step, record.next_step);
-    assert.equal(listed.ready, false);
-    assert.equal(listed.payment_fail, "not_lifted");
-    assert.equal(listed.saved, undefined);
-    assert.equal(listed.result, undefined);
-    assert.equal(listed.score, undefined);
+    assert.equal(list.status, 404);
+    assert.equal((await list.json()).error, "not_found");
 
     const one = await worker.fetch(new Request("https://worker.test/objective/run-existing"), env);
     assert.equal(one.status, 200);
     const read = await one.json();
-    assert.deepEqual(read, listed);
+    assert.equal(read.sentence, record.sentence);
+    assert.equal(read.run_id, record.run_id);
+    assert.equal(read.status, record.status);
+    assert.equal(read.notes, record.notes);
+    assert.equal(read.artifact, "");
+    assert.equal(read.time, record.time);
+    assert.equal(read.next_step, record.next_step);
+    assert.equal(read.ready, false);
+    assert.equal(read.payment_fail, "not_lifted");
+    assert.equal(read.saved, undefined);
+    assert.equal(read.result, undefined);
+    assert.equal(read.score, undefined);
     assert.equal(kv.puts.length, 0);
     assert.equal(kv.store.size, 1);
     assert.equal(kv.store.get("stranger-objective"), before);
@@ -986,22 +963,6 @@ describe("stranger objective save", () => {
 <p>This fixture booth is for sale.</p>
 </body></html>`;
 
-  function assertRunEvents(events, names, runId) {
-    assert.deepEqual(
-      events.map((event) => event.name),
-      names
-    );
-    for (const event of events) {
-      assert.equal(event.run_id, runId);
-      assert.equal(event.who, "worker");
-      assert.equal(typeof event.time, "string");
-      assert.ok(event.before_state);
-      assert.ok(event.after_state);
-      assert.equal(JSON.stringify(event).includes("Glen"), false);
-    }
-    assert.equal(events.some((event) => event.name === "audit" || event.name === "completed"), false);
-  }
-
   it("reads fixture html without baking a page sentence into the artifact helper", () => {
     assert.equal(pageNamedInSentence("See https://example.com/x"), "");
     assert.equal(pageNamedInSentence("Read https://joinermill.com today"), "https://joinermill.com/");
@@ -1026,12 +987,11 @@ describe("stranger objective save", () => {
     assert.equal(src.includes("This fixture booth is for sale"), false);
   });
 
-  it("stores one artifact from fixture html on a clean post and reads it back", async () => {
+  it("does not fetch or store an artifact from a public post", async () => {
     const kv = memoryKv();
     let fetches = 0;
-    globalThis.fetch = async (url) => {
+    globalThis.fetch = async () => {
       fetches += 1;
-      assert.equal(String(url), "https://joinermill.com/");
       return new Response(FIXTURE_HTML, { status: 200, headers: { "Content-Type": "text/html" } });
     };
     const env = { OBJECTIVE: kv, METERING_KV: meteringKv() };
@@ -1043,104 +1003,55 @@ describe("stranger objective save", () => {
       }),
       env
     );
-    assert.equal(res.status, 201);
-    const data = await res.json();
-    assert.equal(fetches, 1);
-    assert.equal(data.status, "SAVED");
-    assert.equal(data.ready, false);
-    assert.equal(data.payment_fail, "not_lifted");
-    assert.equal(data.result, undefined);
-    assert.equal(data.score, undefined);
-    assert.equal(data.notes, PAGE_READ_NOTES);
-    assert.equal(data.artifact.includes(data.run_id), true);
-    assert.match(data.artifact, /Fixture hero line stays exact\./);
-    assert.match(data.artifact, /Not for sale\. "Fixture status line says not for sale\."/);
-    assert.equal(data.artifact.includes("client-supplied-artifact"), false);
-    assert.equal(data.artifact.includes("invented result"), false);
-    assertRunEvents(data.events, [
-      "received",
-      "saved",
-      "owner",
-      "work started",
-      "artifact",
-      "record updated",
-      "result",
-    ], data.run_id);
-    const owner = data.events.find((event) => event.name === "owner");
-    assert.equal(owner.after_state.ready, false);
-    assert.equal(owner.after_state.approval, false);
-    assert.equal(kv.store.size, 1);
-    assert.equal(kv.puts.length, 2);
-    const stored = JSON.parse(kv.store.get("stranger-objective"));
-    assert.equal(stored.run_id, data.run_id);
-    assert.equal(stored.artifact, data.artifact);
-    assert.equal(stored.status, "SAVED");
+    assert.equal(res.status, 404);
+    assert.equal(fetches, 0);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.size, 0);
+    assert.equal(kv.store.has("stranger-objective"), false);
 
+    const record = storedObjective();
+    record.artifact = "already-stored";
+    const seeded = memoryKv([["stranger-objective", JSON.stringify(record)]]);
     const again = await worker.fetch(
       postObjective("A different sentence https://joinermill.com", "https://www.joinermill.com"),
-      env
+      { OBJECTIVE: seeded, METERING_KV: meteringKv() }
     );
     assert.equal(again.status, 200);
     const resumed = await again.json();
-    assert.equal(fetches, 1);
-    assert.equal(kv.puts.length, 2);
-    assert.equal(resumed.run_id, data.run_id);
-    assert.equal(resumed.sentence, data.sentence);
-    assert.equal(resumed.artifact, data.artifact);
-    assert.equal(resumed.events.length, data.events.length);
-    assert.equal(kv.store.size, 1);
-
-    const read = await worker.fetch(new Request(`https://worker.test/objective/${data.run_id}`), env);
-    assert.equal(read.status, 200);
-    const body = await read.json();
-    assert.deepEqual(body.events, data.events);
-    assert.equal(body.artifact, data.artifact);
-    assert.equal(body.ready, false);
-    assert.equal(kv.puts.length, 2);
-
-    const missed = await worker.fetch(new Request("https://worker.test/objective/other-run"), env);
-    assert.equal(missed.status, 404);
-    assert.equal(kv.puts.length, 2);
-    assert.equal(kv.store.size, 1);
+    assert.equal(fetches, 0);
+    assert.equal(seeded.puts.length, 0);
+    assert.equal(resumed.run_id, record.run_id);
+    assert.equal(resumed.sentence, record.sentence);
+    assert.equal(resumed.artifact, "already-stored");
+    assert.equal(resumed.saved, false);
+    assert.equal(seeded.store.get("stranger-objective"), JSON.stringify(record));
   });
 
-  it("appends failed and leaves the artifact empty when the page read fails", async () => {
+  it("does not write when a public post names a page", async () => {
     const kv = memoryKv();
+    let fetches = 0;
     globalThis.fetch = async () => {
+      fetches += 1;
       throw new Error("fixture fetch failed");
     };
     const res = await worker.fetch(
       postObjective("Read https://joinermill.com", "https://joinermill.com"),
       { OBJECTIVE: kv, METERING_KV: meteringKv() }
     );
-    assert.equal(res.status, 201);
-    const data = await res.json();
-    assert.equal(data.artifact, "");
-    assert.equal(data.notes, PAGE_READ_UNKNOWN_NOTES);
-    assert.equal(data.status, "SAVED");
-    assert.equal(data.ready, false);
-    assertRunEvents(data.events, ["received", "saved", "owner", "work started", "failed"], data.run_id);
-    const stored = JSON.parse(kv.store.get("stranger-objective"));
-    assert.equal(stored.artifact, "");
-    assert.equal(stored.sentence, "Read https://joinermill.com");
-    assert.equal(JSON.stringify(stored).includes("Fixture hero"), false);
-    assert.equal(kv.store.size, 1);
+    assert.equal(res.status, 404);
+    assert.equal(fetches, 0);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.has("stranger-objective"), false);
 
     const missing = memoryKv();
-    globalThis.fetch = async () =>
-      new Response("<h1>Only heading</h1><div>no paragraph</div>", {
-        status: 200,
-        headers: { "Content-Type": "text/html" },
-      });
     const missingRes = await worker.fetch(
       postObjective("Read https://www.joinermill.com/now", "https://joinermill.com"),
       { OBJECTIVE: missing, METERING_KV: meteringKv() }
     );
-    const missingData = await missingRes.json();
-    assert.equal(missingData.artifact, "");
-    assert.equal(missingData.notes, PAGE_READ_UNKNOWN_NOTES);
-    assert.equal(missingData.events.at(-1).name, "failed");
-    assert.equal(missing.store.size, 1);
+    assert.equal(missingRes.status, 404);
+    assert.equal(fetches, 0);
+    assert.equal(missing.puts.length, 0);
+    assert.equal(missing.store.size, 0);
   });
 
   function resultObjectiveRecord() {
@@ -1205,7 +1116,7 @@ describe("stranger objective save", () => {
     });
   }
 
-  it("appends one audit and one terminal on the stored run, then refuses a second terminal", async () => {
+  it("close of Run 1 writes nothing and leaves the stored body unchanged", async () => {
     resetIngressForTests();
     const record = resultObjectiveRecord();
     const kv = memoryKv([["stranger-objective", JSON.stringify(record)]]);
@@ -1229,8 +1140,8 @@ describe("stranger objective save", () => {
     };
 
     const listed = await worker.fetch(new Request("https://worker.test/objective"), env);
-    assert.equal(listed.status, 200);
-    assert.equal((await listed.json()).sentence, record.sentence);
+    assert.equal(listed.status, 404);
+    assert.equal((await listed.json()).error, "not_found");
     assert.equal(kv.puts.length, 0);
 
     const readFirst = await worker.fetch(
@@ -1262,53 +1173,21 @@ describe("stranger objective save", () => {
     assert.equal(empty.store.size, 0);
 
     const closed = await worker.fetch(postClose(record.run_id, body), env);
-    assert.equal(closed.status, 200);
+    assert.equal(closed.status, 409);
     const data = await closed.json();
-    assert.equal(data.saved, false);
-    assert.equal(data.sentence, record.sentence);
-    assert.equal(data.artifact, record.artifact);
-    assert.equal(data.run_id, record.run_id);
+    assert.equal(data.error, "terminal_exists");
     assert.equal(data.ready, false);
     assert.equal(data.payment_fail, "not_lifted");
-    assert.deepEqual(
-      data.events.map((event) => event.name),
-      [...record.events.map((event) => event.name), "audit", "failed"]
-    );
-    assert.equal(kv.puts.length, 1);
+    assert.equal(data.sentence, undefined);
+    assert.equal(kv.puts.length, 0);
     assert.equal(kv.store.size, 1);
+    assert.equal(kv.store.get("stranger-objective"), JSON.stringify(record));
     const stored = JSON.parse(kv.store.get("stranger-objective"));
-    assert.deepEqual(stored.events.slice(0, record.events.length), record.events);
+    assert.deepEqual(stored.events, record.events);
     assert.equal(stored.sentence, record.sentence);
     assert.equal(stored.artifact, record.artifact);
     assert.equal(stored.run_id, record.run_id);
-    assert.equal(stored.notes, record.notes);
-    assert.equal(stored.status, record.status);
-    assert.equal(stored.time, record.time);
-    const appended = stored.events.slice(record.events.length);
-    assert.deepEqual(
-      appended.map((event) => event.name),
-      ["audit", "failed"]
-    );
-    assert.equal(stored.events.filter((event) => event.name === "audit").length, 1);
-    assert.equal(stored.events.filter((event) => event.name === "completed" || event.name === "failed").length, 1);
-    for (const event of appended) {
-      assert.equal(event.run_id, record.run_id);
-      assert.equal(event.who, "worker");
-      assert.equal(event.time === "1999-01-01T00:00:00.000Z", false);
-      assert.equal(typeof event.time, "string");
-      assert.ok(event.before_state);
-      assert.ok(event.after_state);
-      assert.equal(event.after_state.pass, false);
-      assert.equal(event.after_state.ready, false);
-      assert.equal(event.after_state.approval, false);
-    }
-    assert.equal(appended[0].after_state.audit_id, "AUDIT-20261004-0847-RUN-READ");
-    assert.equal(appended[0].before_state.pass, false);
-    assert.deepEqual(appended[1].after_state.reasons, reasons);
-    assert.equal(appended[1].after_state.terminal, "failed");
-    assert.equal(JSON.stringify(appended).includes('"who":"Glen"'), false);
-    assert.equal(JSON.stringify(appended).includes('"who":"Gage"'), false);
-    assert.equal(JSON.stringify(appended).includes('"who":"Drew"'), false);
+    assert.equal(JSON.stringify(stored).includes('"who":"Glen"'), false);
 
     const src = fs.readFileSync(path.join(__dirname, "../src/index.js"), "utf8");
     assert.equal(src.includes(record.run_id), false);
@@ -1324,7 +1203,8 @@ describe("stranger objective save", () => {
     assert.equal(readBody.artifact, record.artifact);
     assert.equal(readBody.run_id, record.run_id);
     const listAgain = await worker.fetch(new Request("https://worker.test/objective"), env);
-    assert.equal((await listAgain.json()).sentence, record.sentence);
+    assert.equal(listAgain.status, 404);
+    assert.equal((await listAgain.json()).error, "not_found");
     const getClose = await worker.fetch(
       new Request(`https://worker.test/objective/${record.run_id}/close`),
       env
@@ -1343,26 +1223,21 @@ describe("stranger objective save", () => {
     assert.equal(kv.store.size, 1);
   });
 
-  it("accepts completed as the one terminal and refuses a second", async () => {
+  it("does not write a completed terminal onto Run 1", async () => {
     resetIngressForTests();
     const record = resultObjectiveRecord();
-    const kv = memoryKv([["stranger-objective", JSON.stringify(record)]]);
+    const raw = JSON.stringify(record);
+    const kv = memoryKv([["stranger-objective", raw]]);
     const env = closeEnv(kv);
     const closed = await worker.fetch(
       postClose(record.run_id, { audit_id: "AUDIT-20261004-0847-RUN-READ", terminal: "completed" }),
       env
     );
-    assert.equal(closed.status, 200);
-    const stored = JSON.parse(kv.store.get("stranger-objective"));
-    assert.deepEqual(stored.events.slice(record.events.length).map((event) => event.name), ["audit", "completed"]);
-    assert.equal(stored.events.at(-1).who, "worker");
-    assert.equal(stored.events.at(-1).after_state.pass, false);
-    assert.deepEqual(stored.events.at(-1).after_state.reasons, []);
-    assert.equal(stored.sentence, record.sentence);
-    assert.equal(stored.artifact, record.artifact);
-    assert.equal(stored.run_id, record.run_id);
+    assert.equal(closed.status, 409);
+    assert.equal((await closed.json()).error, "terminal_exists");
+    assert.equal(kv.store.get("stranger-objective"), raw);
+    assert.equal(kv.puts.length, 0);
     assert.equal(kv.store.size, 1);
-    assert.equal(kv.puts.length, 1);
     const second = await worker.fetch(
       postClose(record.run_id, {
         audit_id: "AUDIT-20261004-0847-RUN-READ",
@@ -1372,8 +1247,9 @@ describe("stranger objective save", () => {
       env
     );
     assert.equal(second.status, 409);
-    assert.equal(kv.puts.length, 1);
-    assert.equal(JSON.parse(kv.store.get("stranger-objective")).events.at(-1).name, "completed");
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), raw);
+    assert.equal(JSON.parse(raw).events.at(-1).name, "result");
   });
 
   function storedFailPair(status) {
@@ -1432,8 +1308,13 @@ describe("stranger objective save", () => {
     const kv = memoryKv([["stranger-objective", JSON.stringify(record)]]);
     const before = kv.store.get("stranger-objective");
     const read = await worker.fetch(new Request("https://worker.test/objective"), { OBJECTIVE: kv });
-    assert.equal(read.status, 200);
-    const body = await read.json();
+    assert.equal(read.status, 404);
+    assert.equal((await read.json()).error, "not_found");
+    const byId = await worker.fetch(new Request(`https://worker.test/objective/${record.run_id}`), {
+      OBJECTIVE: kv,
+    });
+    assert.equal(byId.status, 200);
+    const body = await byId.json();
     assert.equal(body.status, "failed");
     assert.equal(body.ready, false);
     assert.equal(body.sentence, record.sentence);
@@ -1445,7 +1326,7 @@ describe("stranger objective save", () => {
     assert.equal(JSON.parse(before).status, "SAVED");
   });
 
-  it("corrects SAVED to failed for the stored pass-false pair and does not append", async () => {
+  it("does not rewrite a stored pass-false pair on close", async () => {
     resetIngressForTests();
     const record = storedFailPair("SAVED");
     const kv = memoryKv([["stranger-objective", JSON.stringify(record)]]);
@@ -1469,36 +1350,27 @@ describe("stranger objective save", () => {
       postClose(record.run_id, { ...same, sentence: "nope", artifact: "nope", status: "SAVED", who: "Glen" }),
       env
     );
-    assert.equal(corrected.status, 200);
-    const data = await corrected.json();
-    assert.equal(data.status, "failed");
-    assert.equal(data.ready, false);
-    assert.equal(data.sentence, record.sentence);
-    assert.equal(data.artifact, record.artifact);
-    assert.equal(data.notes, record.notes);
-    assert.equal(data.run_id, record.run_id);
-    assert.deepEqual(data.events, record.events);
-    assert.equal(kv.puts.length, 1);
+    assert.equal(corrected.status, 409);
+    assert.equal((await corrected.json()).error, "terminal_exists");
+    assert.equal(kv.puts.length, 0);
     assert.equal(kv.store.size, 1);
     const stored = JSON.parse(kv.store.get("stranger-objective"));
-    assert.equal(stored.status, "failed");
+    assert.equal(stored.status, "SAVED");
     assert.equal(JSON.stringify(stored.events), eventsBefore);
     assert.equal(stored.sentence, record.sentence);
     assert.equal(stored.artifact, record.artifact);
     assert.equal(stored.notes, record.notes);
     assert.equal(stored.run_id, record.run_id);
-    assert.equal(stored.events.filter((event) => event.name === "failed").length, 1);
-    assert.equal(stored.events.every((event) => event.who === "worker"), true);
 
     const again = await worker.fetch(postClose(record.run_id, same), env);
-    assert.equal(again.status, 200);
-    assert.equal((await again.json()).status, "failed");
-    assert.equal(kv.puts.length, 1);
+    assert.equal(again.status, 409);
+    assert.equal(kv.puts.length, 0);
     assert.equal(JSON.stringify(JSON.parse(kv.store.get("stranger-objective")).events), eventsBefore);
 
     const read = await worker.fetch(new Request(`https://worker.test/objective/${record.run_id}`), env);
     assert.equal((await read.json()).status, "failed");
-    assert.equal(kv.puts.length, 1);
+    assert.equal(kv.puts.length, 0);
+    assert.equal(kv.store.get("stranger-objective"), JSON.stringify(record));
   });
 
   it("does not append a close without the owner boundary", async () => {
