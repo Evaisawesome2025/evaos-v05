@@ -26,7 +26,11 @@
  * run id only, appends one audit event and then exactly one terminal event
  * (completed or failed). The audit cites the caller's audit id and does not
  * record a pass. The terminal carries the caller's failure reasons. The
- * sentence, artifact, and run id stay. A later call appends nothing.
+ * sentence, artifact, and run id stay. Status on a read is a projection of
+ * the events. The read writes nothing. Repeating the stored pass-false
+ * failed pair does not append. If that pair is stored and status is still
+ * SAVED, the same call sets status to failed and does not append. A
+ * different terminal or verdict writes nothing.
  */
 import {
   DOGFOOD_POLICY,
@@ -513,11 +517,37 @@ async function readStrangerObjective(kv) {
   return { state: "objective", record: parsed };
 }
 
+function passFalseFailedPair(events) {
+  if (!Array.isArray(events) || events.length < 2) return false;
+  const terminal = events[events.length - 1];
+  const audit = events[events.length - 2];
+  if (!terminal || !audit || terminal.name !== "failed" || audit.name !== "audit") return false;
+  if (!audit.after_state || audit.after_state.pass !== false) return false;
+  let terminals = 0;
+  let audits = 0;
+  for (const event of events) {
+    if (!event) continue;
+    if (event.name === "failed" || event.name === "completed") terminals += 1;
+    if (event.name === "audit") audits += 1;
+  }
+  return terminals === 1 && audits === 1;
+}
+
+function projectObjectiveStatus(record) {
+  const events = Array.isArray(record.events) ? record.events : [];
+  if (passFalseFailedPair(events)) return "failed";
+  for (let i = events.length - 1; i >= 0; i--) {
+    const status = events[i] && events[i].after_state && events[i].after_state.status;
+    if (typeof status === "string" && status) return status;
+  }
+  return typeof record.status === "string" ? record.status : "";
+}
+
 function objectiveFields(record) {
   return {
     sentence: record.sentence,
     run_id: record.run_id,
-    status: record.status,
+    status: projectObjectiveStatus(record),
     notes: record.notes,
     artifact: typeof record.artifact === "string" ? record.artifact : "",
     time: record.time,
@@ -828,6 +858,32 @@ async function handleObjectiveClose(request, env, origin, path) {
   }
 
   const events = Array.isArray(record.events) ? record.events : [];
+  if (passFalseFailedPair(events)) {
+    const { payload, invalid } = await readJson(request);
+    if (invalid || !payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return objectiveError(400, "invalid_json", origin);
+    }
+    if (payload.terminal !== "completed" && payload.terminal !== "failed") {
+      return objectiveError(400, "invalid_terminal", origin);
+    }
+    if (payload.terminal !== "failed" || payload.pass === true) {
+      return objectiveError(409, "terminal_exists", origin);
+    }
+    if (record.status !== "SAVED") {
+      return json(200, objectiveBody(record, false), origin);
+    }
+    const next = {
+      ...record,
+      sentence: record.sentence,
+      artifact: typeof record.artifact === "string" ? record.artifact : "",
+      run_id: record.run_id,
+      notes: record.notes,
+      status: "failed",
+      events,
+    };
+    await kv.put(STRANGER_OBJECTIVE_KEY, JSON.stringify(next));
+    return json(200, objectiveBody(next, false), origin);
+  }
   if (hasTerminalEvent(events)) {
     return objectiveError(409, "terminal_exists", origin);
   }
