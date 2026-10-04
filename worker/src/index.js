@@ -31,6 +31,13 @@
  * failed pair does not append. If that pair is stored and status is still
  * SAVED, the same call sets status to failed and does not append. A
  * different terminal or verdict writes nothing.
+ *
+ * A later run is not stored on stranger-objective. Its key is its run id.
+ * That value holds its own events, evidence, and verdict, plus the objective
+ * id. Status is derived from that run's events. The pointer key is
+ * objective/<objective_id> and holds only objective_id and open_run_id.
+ * Events decide the one open run; the pointer is a reference, not a second
+ * copy of the run. That write does not put stranger-objective.
  */
 import {
   DOGFOOD_POLICY,
@@ -834,6 +841,167 @@ function objectiveClosePath(pathname) {
 
 function hasTerminalEvent(events) {
   return events.some((event) => event && (event.name === "completed" || event.name === "failed"));
+}
+
+function validStoreId(value) {
+  return typeof value === "string" && /^[A-Za-z0-9._-]{1,128}$/.test(value);
+}
+
+/** Pointer for one objective. Not a global namespace key. */
+export function objectivePointerKey(objectiveId) {
+  return `objective/${objectiveId}`;
+}
+
+function parseStoredJson(raw) {
+  if (raw == null) return null;
+  let parsed = raw;
+  if (typeof raw === "string") {
+    if (raw.trim() === "") return null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  return parsed;
+}
+
+function runEvents(record) {
+  return Array.isArray(record && record.events) ? record.events : [];
+}
+
+function snapshotJson(value) {
+  if (value === undefined) return null;
+  return JSON.parse(JSON.stringify(value));
+}
+
+function openRunIds(records) {
+  const ids = [];
+  const seen = new Set();
+  for (const record of records) {
+    if (!record || typeof record.run_id !== "string" || record.run_id === "" || seen.has(record.run_id)) {
+      continue;
+    }
+    seen.add(record.run_id);
+    if (!hasTerminalEvent(runEvents(record))) ids.push(record.run_id);
+  }
+  return ids;
+}
+
+function pointerNames(pointer, objectiveId, runId) {
+  return !!pointer && pointer.objective_id === objectiveId && pointer.open_run_id === runId;
+}
+
+function viewObjectiveRun(record) {
+  return {
+    ...record,
+    events: runEvents(record),
+    status: projectObjectiveStatus(record),
+  };
+}
+
+function refusedRunWrite() {
+  return { ok: false, error: "refused" };
+}
+
+async function putRunStoreKey(kv, key, value) {
+  if (key === STRANGER_OBJECTIVE_KEY) {
+    throw new Error("stranger-objective is not written");
+  }
+  await kv.put(key, value);
+}
+
+/**
+ * Read one run. Run 1 resolves from stranger-objective when the id matches.
+ * Any other id resolves from its own key. A missing id is not created.
+ */
+export async function readObjectiveRun(kv, runId) {
+  if (!validStoreId(runId) || runId === STRANGER_OBJECTIVE_KEY) return null;
+  const run1 = parseStoredJson(await kv.get(STRANGER_OBJECTIVE_KEY));
+  if (run1 && run1.run_id === runId) return viewObjectiveRun(run1);
+  const own = parseStoredJson(await kv.get(runId));
+  if (!own || own.run_id !== runId) return null;
+  return viewObjectiveRun(own);
+}
+
+/**
+ * Write one open run on this objective. A new run puts its own key and the
+ * objective pointer. A live run appends events on its own key only. A
+ * terminal run is not written. stranger-objective is not written.
+ * Two open runs, or a pointer that disagrees with the one open run, write nothing.
+ */
+export async function writeObjectiveRun(kv, input) {
+  const objectiveId = input && input.objective_id;
+  const runId = input && input.run_id;
+  const incoming = input && input.events;
+  if (!validStoreId(objectiveId) || !validStoreId(runId)) return refusedRunWrite();
+  if (objectiveId === runId || runId === STRANGER_OBJECTIVE_KEY) return refusedRunWrite();
+  if (!Array.isArray(incoming)) return refusedRunWrite();
+
+  const pointerKey = objectivePointerKey(objectiveId);
+  if (pointerKey === STRANGER_OBJECTIVE_KEY || pointerKey === runId) return refusedRunWrite();
+
+  const run1 = parseStoredJson(await kv.get(STRANGER_OBJECTIVE_KEY));
+  if (run1 && run1.run_id === runId) return refusedRunWrite();
+
+  const pointer = parseStoredJson(await kv.get(pointerKey));
+  const existing = parseStoredJson(await kv.get(runId));
+  if (existing && (existing.run_id !== runId || existing.objective_id !== objectiveId)) {
+    return refusedRunWrite();
+  }
+  if (existing && hasTerminalEvent(runEvents(existing))) return refusedRunWrite();
+
+  const added = snapshotJson(incoming);
+  const prior = existing ? runEvents(existing) : [];
+  const nextEvents = prior.concat(added);
+  if (!existing && hasTerminalEvent(nextEvents)) return refusedRunWrite();
+
+  const evidence =
+    input.evidence === undefined ? (existing ? existing.evidence ?? null : null) : snapshotJson(input.evidence);
+  const verdict =
+    input.verdict === undefined ? (existing ? existing.verdict ?? null : null) : snapshotJson(input.verdict);
+  const next = {
+    run_id: runId,
+    objective_id: objectiveId,
+    events: nextEvents,
+    evidence,
+    verdict,
+  };
+
+  const known = [];
+  if (run1 && typeof run1.run_id === "string") known.push(run1);
+  if (existing) known.push(existing);
+  if (
+    pointer &&
+    typeof pointer.open_run_id === "string" &&
+    pointer.open_run_id !== runId &&
+    (!run1 || pointer.open_run_id !== run1.run_id)
+  ) {
+    const pointed = parseStoredJson(await kv.get(pointer.open_run_id));
+    if (pointed && pointed.run_id === pointer.open_run_id) known.push(pointed);
+  }
+
+  const currentOpen = openRunIds(known);
+  if (currentOpen.length > 1) return refusedRunWrite();
+  if (currentOpen.length === 1 && !pointerNames(pointer, objectiveId, currentOpen[0])) {
+    return refusedRunWrite();
+  }
+
+  const resulting = currentOpen.filter((id) => id !== runId);
+  if (!hasTerminalEvent(nextEvents)) resulting.push(runId);
+  if (new Set(resulting).size > 1) return refusedRunWrite();
+
+  const runJson = JSON.stringify(next);
+  await putRunStoreKey(kv, runId, runJson);
+  if (!existing) {
+    await putRunStoreKey(
+      kv,
+      pointerKey,
+      JSON.stringify({ objective_id: objectiveId, open_run_id: runId })
+    );
+  }
+  return { ok: true };
 }
 
 async function handleObjectiveClose(request, env, origin, path) {

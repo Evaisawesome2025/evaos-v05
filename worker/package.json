@@ -6,7 +6,7 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "test": "node --test test/worker_logic.test.js test/hardstop.test.js",
+    "test": "node --test test/worker_logic.test.js test/hardstop.test.js test/objective_run.test.js",
     "deploy": "wrangler deploy",
     "tail": "wrangler tail"
   },
