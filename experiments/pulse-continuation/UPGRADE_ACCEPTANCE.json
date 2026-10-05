@@ -1,0 +1,24 @@
+{
+  "frozen_at": 1791243323.0609407,
+  "scope": "UNSCORED local durable planner exchange around unchanged reviewed controller; no scheduler/provider activation",
+  "preserved_archive_sha256": "6427f7689f03a6fe0bc0a3a123112d0b782a2caef35a68b667cd5bc38151d6b2",
+  "controller_code_hash": "8066428b71c0200c0a85f24dad4626fdc52eb05ac96441e09f56ed9077abe71c",
+  "criteria": [
+    "Pending planner request survives clean process exit and restart without a held principal lease or pre-created Turn.",
+    "Canonical packet, protocol, full model input, state identity and adapter/controller code hashes bind each immutable durable request.",
+    "Launch identity is recorded once. Missing output after recorded dispatch stays pending/uncertain; never automatic re-launch. This does not prove exactly-once external launch.",
+    "Response matches request/input/launch identifiers; same raw bytes redeliver idempotently; changed bytes or identifiers, duplicate JSON keys, malformed encoding, non-finite values and stale head reject before worker work.",
+    "Fresh process consumes durable response through unchanged admission/start/verification. Principal receipts reconcile interrupted adapter acknowledgments; completed work is not replayed.",
+    "Concurrent ticks/deliveries and restart at request, response and verification boundaries do not duplicate worker work.",
+    "Crash after start remains ambiguous and uses existing fenced expiry/recovery to BLOCK without replay; no automatic claim that the worker never ran.",
+    "Changed adapter/protocol/controller or damaged stored input/output is detected before a tick mutates principal state.",
+    "Six-wake amended repair sequence and completion sleep remain intact in local mechanics tests; failures are evidence-true and never forced verdicts.",
+    "Bounded fresh task-model integration uses existing authorized no-history task launches only, fixed schema wrapper+current packet, unchanged outputs, no retries/steering. This remains manually orchestrated, not unattended scheduling.",
+    "Independent reviewer checks exact final code/evidence before publication; original artifacts, repositories and website branches remain preserved."
+  ],
+  "nonclaims": [
+    "No agent-inaccessible trust boundary, MAC seal, owner-hidden fault, k>=8 repair discrimination, full transcript/input isolation, unattended scheduler, company/scored acceptance or production readiness.",
+    "A recorded dispatch receipt is a local assertion, not provider attestation. The safe recovery for unknown external launch outcome needs provider reconciliation or owner review.",
+    "Existing 35 tests/31 probes and prior five-model six-opportunity result remain historical evidence; any new deterministic tests prove adapter mechanics only."
+  ]
+}

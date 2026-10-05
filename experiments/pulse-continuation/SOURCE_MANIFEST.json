@@ -1,0 +1,13 @@
+{
+  "README.md": "0140a608532fd31f4b84859efc0c5e97ebb2ed9a0dc2ee37b4eb147cb5cc84d0",
+  "continuation.py": "ca3bc710788a33b3ade7bdac24eb1a318cebb0a93ec693b97163758b520ab255",
+  "planner-protocol.txt": "ac4ce994f01b162fb31520c916e98b6eccae153e94c22404e8a835a739bbb76c",
+  "pulse/__init__.py": "1ee1fd80078da01456a8e1741f3881da49edbdad4fc184028dd1db04ba0a38fc",
+  "pulse/cli.py": "f805a840025efc8e0c4ae52f21be2639f6ae5a7cd3f1c589dd192ccacff84757",
+  "pulse/controller.py": "1ddbb8fdfaddca5539b84848d95e50bf4179e9ff4e88515828630acd449bbec7",
+  "pulse/fixtures.py": "3adae60dfd08f45f76feea09496693a28a0bf8807619afe49588e0f6db5d4856",
+  "pulse/model.py": "105c933912eb60cc618042f925061a7aa4c3750ecef707a671662b9bfe12f915",
+  "pulse/principal.py": "01b907105f6668be512d1a4c2c811fd8bbb4a9e4cc6f71b8f9b16ad342013bc9",
+  "pulse/store.py": "3ad16d64adf59884a98e63b7f14e815573c6b20b9a1478c9169e9d3de0ffc360",
+  "test_continuation.py": "5a2a9103d4436c7ffe65d1730513e0c52c712fb6304afd22d52a4c38ad42cdab"
+}
