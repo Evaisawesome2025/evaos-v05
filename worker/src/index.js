@@ -34,6 +34,7 @@
  * copy of the run. The write helper is for tests. This worker's fetch handler
  * does not call it, and it does not put stranger-objective.
  */
+import { handleBrief } from "./brief.js";
 import {
   DOGFOOD_POLICY,
   DOGFOOD_ASK_ESTIMATED_COGS_USD,
@@ -1019,6 +1020,8 @@ export default {
   async fetch(request, env = {}) {
     const origin = request.headers.get("Origin") || "";
     const url = new URL(request.url);
+
+    if (url.pathname === "/brief/validate") return handleBrief(request);
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
