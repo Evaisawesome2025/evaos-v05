@@ -1,3 +1,11 @@
+# Command-center compatibility checkpoint — 2026-10-05
+
+**Documentation-only feature branch; no deployment or main merge.** The next frontend uses the unchanged six-field `/brief/validate` contract. Next-action/unresolved-input notes and browser-save metadata remain local and must not be sent to this endpoint. This branch introduces no backend runtime, setting, binding, authentication or deployment-helper change. The frozen reviewed backend base is `d39936927821ce80087194eec948c7d94857037b`.
+
+The older release procedure below is retained for a future authorized coordinated publication. It is not an instruction to deploy this branch now. Refresh all remote state and safe baseline evidence before any later release. See ../START_HERE.md and ../RELEASE_STATUS.json for the current checkpoint.
+
+---
+
 # Editable brief release, 2026-10-05
 
 `POST /brief/validate` is a stateless, deterministic structure check and plain-text export. It accepts exactly six string fields: objective, inputs, deliverable, constraints, success (one criterion per line), stopRule. It returns normalized fields, exportText and its SHA-256, with executed:false and validation:structure_only. No AI, judgment, fetch of supplied links, assignment, storage, body logging or business execution occurs.

@@ -1,32 +1,30 @@
-# Start here — EVAOS stateless brief validation
+# Start here — EVAOS brief contract checkpoint
 
-## Release state
+## Current state
 
-2026-10-05: implementation reviewed and tests passing; **publication pending verification**. This document does not claim a live deployment. Source baseline: `c15db296c5a7dbf2cb5df40ba8fbe9443e578570`. Coordinated frontend: [Joinermill](https://github.com/Evaisawesome2025/joinermill), prior verified release `4123538bf18c4eb322c20247e23656625df40169`.
+2026-10-05: **documentation-only next branch; not deployed or merged to main.** Branch `next/command-center-contract-20261005` starts from frozen reviewed backend `d39936927821ce80087194eec948c7d94857037b`. The frozen `release/brief-validation-20261005` branch remains unchanged. This increment makes no runtime, configuration, deployment-helper or preserved-module change.
 
-## What changed
+The matching [Joinermill](https://github.com/Evaisawesome2025/joinermill) branch `next/command-center-20261005` extends frozen `7f78c54097d70dc46d2d51b45f5e3d513f88fe67`. It adds a local work desk, next-action/missing-input notes, explicit browser save/restore/remove, and work-plan export. These notes and save metadata are not backend inputs. The existing six-field brief API covers the only server action, so no additional endpoint or storage is needed.
 
-`POST /brief/validate` validates six strings, normalizes whitespace, produces an exact plain-text work brief and returns its SHA-256. It is deterministic structure validation only: no AI judgment, model calls, research, job execution, user-content storage or body logging. Checklist items stay unverified. Input is explicitly sent by a frontend button with a processing disclosure. There are no new services or bindings.
+The first reviewed release in the frozen branch remains undeployed in this work trail. The production Worker version captured before that work is `514bf8c7-30cb-4f8f-bc9e-2c08882a45e8`; this is a historical baseline, not a new claim of current remote state. No live customer records were accessed for this increment.
 
-The request is bounded to 32 KiB, a three-second body-read deadline, per-field limits and 1–12 checklist items. Responses use JSON and no-store, with allowlisted browser CORS origins. A fixed-size in-memory per-isolate bucket limits the new route to 60 requests/minute; this is best-effort, not a global traffic guarantee.
+## Existing contract and deployment continuity
 
-## Critical production continuity
+`POST /brief/validate` accepts exactly six strings: objective, inputs, deliverable, constraints, success and stopRule. It normalizes whitespace and returns a canonical plain-text export and SHA-256 with `executed:false` and `validation:structure_only`. It does not judge the plan, verify work, fetch supplied links, call models, schedule agents, log bodies or persist customer content. Inputs arrive only after the frontend's explicit format-check action; infrastructure may retain metadata.
 
-The deployed Worker contains existing routes that were absent from repository main. `worker/preserved/deployed-514bf8c7.js` preserves the exact captured production module. `worker/src/release.js` delegates every existing route to it and handles only `/brief/validate` itself. This preserves existing behavior; it does not introduce the captured routes as new features. Main source also exposes the new route for regression testing.
+Bounds remain unchanged: 32 KiB streamed body, three-second read deadline, field limits, 1–12 success criteria, JSON errors/no-store responses, allowlisted browser CORS and a best-effort 60-requests/minute/isolate bucket. Existing route authentication and behavior stay unchanged.
 
-**Do not publish with plain wrangler defaults:** checked-in configuration lacks part of the live setup. Read [worker/RELEASE.md](worker/RELEASE.md). The dedicated deployment helper retains all live binding types/settings in memory, checks current version/settings immediately before upload, and checks downloaded module hashes afterward. The provider API lacks atomic compare-and-swap, so a small concurrency race remains; coordinate publication and stop on mismatch. Use only existing authorized deployment access; never place credentials or raw settings in files or logs.
+The preserved production module contains routes missing from the older repository main. `worker/preserved/deployed-514bf8c7.js` is its exact captured code; `worker/src/release.js` delegates every old route to it. Never deploy older main as a rollback, and never use plain wrangler defaults. [worker/RELEASE.md](worker/RELEASE.md) describes the settings-preserving helper and concurrency/hash guards. No binding, secret, settings or security policy is changed by this documentation increment.
 
-## Resume, test and roll back
+## Successor checklist
 
-1. Read [RELEASE_LOG.md](RELEASE_LOG.md), worker/RELEASE.md and current remote state before editing. Preserve concurrent changes.
-2. `cd worker && npm test` — 70/70 tests passed at the implementation checkpoint, including the original 62. Tests use synthetic inputs/stores, check old-route delegation, unchanged captured-module hash, export fidelity, request limits, CORS and absence of binding/outbound accesses by the new route.
-3. Keep `worker/src/brief-model.js` byte-identical to Joinermill's `preview/brief-model.js`. The frontend has 2 unit tests plus 13 browser regression groups and desktop/mobile accessibility checks.
-4. Deploy backend first with the reviewed helper, then make harmless synthetic requests to `/brief/validate`, `/health` and protected-route refusals. Do not access live customer records for release tests. Publish frontend only after these pass.
+1. Read [RELEASE_STATUS.json](RELEASE_STATUS.json), [RELEASE_LOG.md](RELEASE_LOG.md), worker/RELEASE.md and the matching frontend handoff. Fetch remote state before editing and preserve later work.
+2. Run `cd worker && npm test` (70 tests). Keep `worker/src/brief-model.js` byte-identical to frontend `preview/brief-model.js`. The frontend has 9 unit tests and 25 browser groups; requests are intercepted and the actual Worker handler runs locally with synthetic input.
+3. Review the separate command-center security/privacy review and final exact branch commit hashes supplied with the handoff. Stop at feature-branch publication for this checkpoint; no deployment or main merge is part of it.
+4. A future authorized release must refresh the safe Worker baseline, verify existing network access and preserve all live bindings/settings. Backend comes first, then harmless synthetic probes, then the frontend through existing Pages. Confirm live results rather than inferring them from push/upload.
 
-The captured prior Worker version is `514bf8c7-30cb-4f8f-bc9e-2c08882a45e8`; its module is retained for safe code rollback. The helper's `--rollback --expected-version <our exact current release version>` guard restores that module while retaining settings. Inspect concurrent changes first. No KV/customer data rollback is part of this release. Never deploy the main baseline alone as a production rollback because it omits existing live routes.
+No live rollback is needed now. For branch recovery inspect later changes, then revert only this documentation commit. For a later live release use the guarded code rollback in worker/RELEASE.md; it preserves settings and does not roll back customer/KV data.
 
-## Holds, limitations and next steps
+## Holds and truthful scope
 
-[Joinermill PR15](https://github.com/Evaisawesome2025/joinermill/pull/15) and [EVAOS PR32](https://github.com/Evaisawesome2025/evaos-v05/pull/32) remain held, unmerged and untouched. Existing frozen experiments are preserved. Pulse is an isolated controller prototype reported as completed but **UNSCORED**; its artifacts are not in this checkout, and this release does not deploy it or claim autonomy.
-
-Next: reconcile the captured production source with maintainable source modules in a separate reviewed change, without activating held work. The brief service itself cannot judge whether a plan is good or verify work completion. Persistence, agent execution and new infrastructure require a separate scope decision.
+Held [Joinermill PR15](https://github.com/Evaisawesome2025/joinermill/pull/15) and [EVAOS PR32](https://github.com/Evaisawesome2025/evaos-v05/pull/32) remain untouched and unmerged. Pulse remains a separate completed **UNSCORED** controller prototype, absent from this checkout and not deployed. There are no new services, paid model calls, persistent customer writes, jobs, outreach or autonomy claims. Production-source reconciliation is a separate future reviewed task, not part of this increment.

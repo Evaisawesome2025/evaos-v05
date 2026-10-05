@@ -9,3 +9,15 @@ All times UTC. This log contains public technical project information only.
 - **Publication: pending.** No live success claim is made until the backend and Pages deployment are independently verified. Final commits/deployments and remaining limitations will be added here after verification.
 
 See START_HERE.md and RELEASE.md (frontend) or worker/RELEASE.md (backend) for exact test and rollback procedures. No held PR or Pulse deployment is part of this update.
+
+## Second increment — branch-only command center
+
+- **23:08 UTC — Implementation checkpoint.** Created isolated next branches from the two frozen reviewed release commits. Added the frontend work desk, editable local next action/unresolved inputs, manual browser snapshot save/restore/remove and complete/partial work-plan export. The existing six-field backend contract is unchanged and sufficient; backend changes in this increment are documentation only. No merge, deployment, model call or new service.
+- **23:09–23:15 UTC — Regression work.** Added versioned snapshot validation, field/byte bounds, explicit restore/replacement, storage failure handling, export fidelity, repeated-click and interrupted-check coverage. A first browser run used the wrong local port for the CORS fixture; restarted the test server on expected port 8765 without changing product CORS. One backend test command was initially run from repository root; corrected to worker/. Neither failure changed production.
+- **23:13–23:15 UTC — Independent review repair.** Reviewer reproduced three hidden summary fields surviving Clear draft. Cleared them with the rest of the current tab and added exact empty-content assertions; reviewer independently confirmed the fix. Added explicit restore/reset dialog axe evidence and corrected screenshot scroll position. Final regression and documentation review pending.
+
+Public handoff files contain only technical state and synthetic examples. Frozen release branches, held PR15/PR32 and all live deployments remain untouched. No credentials, raw settings or customer records are included.
+
+- **23:17 UTC — Final regression evidence confirmed.** Frontend 9/9 unit tests, backend 70/70 tests, both browser suites (25 groups total), 17 axe scans with zero violations and no page errors. Desktop/mobile screenshots captured after resetting scroll position. Shared model remains byte-identical; backend runtime/configuration unchanged. Documentation/privacy labels updated for manual browser persistence and branch-only publication. Final independent documentation review pending.
+
+- **23:18 UTC — Independent final signoff.** Approved publication of the two tested feature branches only, with no open findings. Reviewer confirmed reset repair, truthful capability/privacy labels, exact six-field request isolation, all test evidence, sanitized documentation/screenshots and no backend runtime delta. Source review covered 19 intended changed/new files. No main merge or deployment authorized by this checkpoint.

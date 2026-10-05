@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "checkpoint": "command-center-20261005",
+  "scope": "reviewed_feature_branches_only",
+  "deployed": false,
+  "main_merged": false,
+  "frozen_frontend_base": "7f78c54097d70dc46d2d51b45f5e3d513f88fe67",
+  "frozen_backend_base": "d39936927821ce80087194eec948c7d94857037b",
+  "frontend_branch": "next/command-center-20261005",
+  "backend_branch": "next/command-center-contract-20261005",
+  "backend_runtime_changed": false,
+  "held_prs": {
+    "joinermill": 15,
+    "evaos-v05": 32
+  },
+  "pulse": {
+    "status": "UNSCORED",
+    "deployed": false
+  },
+  "verification": {
+    "frontend_unit_tests": 9,
+    "backend_tests": 70,
+    "browser_groups": 25,
+    "axe_scans": 17,
+    "test_data": "synthetic_only",
+    "status": "passed_and_independently_reviewed",
+    "axe_violations": 0,
+    "browser_page_errors": 0
+  },
+  "storage": {
+    "location": "browser_localStorage_only_after_explicit_save",
+    "snapshot_limit_bytes": 65536,
+    "auto_save": false,
+    "auto_restore": false,
+    "sync": false,
+    "arbitrary_file_import": false
+  },
+  "server_input": "six_brief_fields_only_on_explicit_format_check",
+  "next_step": "Review exact remote feature-branch commits in the final handoff. Do not merge or deploy in this checkpoint.",
+  "repository": "evaos-v05",
+  "review": {
+    "result": "approved_for_feature_branch_publication_only",
+    "open_findings": 0,
+    "resolved_findings": [
+      "Reset now clears all hidden summary content."
+    ]
+  }
+}
