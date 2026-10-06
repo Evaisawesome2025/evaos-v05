@@ -1,0 +1,143 @@
+{
+  "classification": "UNSCORED_LOCAL_FINITE_RUN",
+  "base_commit": "e3ae254b30924938daac0cd41a491c26645845a1",
+  "frozen_criteria_sha256": "2cf1846bbbf65e460fcb947383f3e726022e9f880b12f58b8a19d37b6fbf0cc2",
+  "coordinator_sha256": "222a66fe817e9304fa6a122ce1efe74ecd351a7bcd66c19c8b7d452e08bbcad0",
+  "source_manifest_sha256": "a71cfb1244fc20948f72c2cbef6b4db14af5260b34ee47366e81e62150c6a1e9",
+  "tests": {
+    "command": "python -B -m unittest -v test_continuation test_consumption test_coordinator",
+    "passed": 46,
+    "new_coordinator_tests": 20,
+    "retained_regressions": 26,
+    "seconds": 5.158,
+    "log_sha256": "2b613f2947a15aff38559f904cb78fa581b70a924f0f2f412557ec73a042ac54"
+  },
+  "independent_review": {
+    "probe_groups": 16,
+    "primary_groups": [
+      {
+        "name": "invalid_configurations_create_no_state",
+        "passed": true
+      },
+      {
+        "name": "waiting_and_unknown_dispatch_preserve_budget_exact_response_resumes",
+        "passed": true
+      },
+      {
+        "name": "ten_processes_cannot_exceed_two_wake_budget",
+        "passed": true
+      },
+      {
+        "name": "reservation_and_post_receipt_crashes_never_refund_or_infer_result",
+        "passed": true
+      },
+      {
+        "name": "wait_pause_persists_clock_highwater_and_rollback_stop",
+        "passed": true
+      },
+      {
+        "name": "deadline_checked_at_admission_and_after_durable_reservation",
+        "passed": true
+      },
+      {
+        "name": "unrelated_request_cannot_spend_waiting_request_budget",
+        "passed": true
+      },
+      {
+        "name": "principal_drift_after_reservation_prevents_tick",
+        "passed": true
+      },
+      {
+        "name": "post_tick_external_mutation_is_detected_and_stops",
+        "passed": true
+      },
+      {
+        "name": "configuration_attempt_result_and_checkpoint_faults_fail_closed",
+        "passed": true
+      },
+      {
+        "name": "blocked_and_verified_complete_are_sticky_without_more_ticks",
+        "passed": true
+      }
+    ],
+    "edge_groups": [
+      {
+        "name": "stale_unknown_provider_job_retained_and_admission_stopped",
+        "passed": true
+      },
+      {
+        "name": "changed_coordinator_file_rejected_before_principal_mutation",
+        "passed": true
+      },
+      {
+        "name": "pending_observers_preserve_owner_acknowledgment_and_clock_order",
+        "passed": true
+      }
+    ],
+    "checkpoint_fault": {
+      "rejected": true,
+      "reason": "RUN_RECORD_DAMAGED",
+      "principal_unchanged": true
+    },
+    "post_tick_clock_failure": {
+      "validation_error": "INVALID_CLOCK",
+      "tick_already_ran": true,
+      "charged_wakes": 1,
+      "restart_status": "WAKE_OUTCOME_UNKNOWN"
+    },
+    "boundary": "Exclusive supported tick ownership; no adversarial lock against direct adapter/principal bypass; no activation or unattended proof",
+    "remaining_material_findings": [],
+    "reviewed_hashes_sha256": "0f30dae17fcdff839a7c79d00acc50347c74e838883a7e33aae7bc3970ac7835",
+    "evidence_sha256": {
+      "finite_probes.py": "669142aa4b6c69abc469a35ae429033091512d2e5c6de6bd8657c7aabe38b843",
+      "edge_probes.py": "89ad6cd443f1f9a39f25075fb8e05730261d1f127c99421e856a4dc378cfe508",
+      "exchange_drift_probe.py": "97b11c82ab04f75ce04db717e936513e108f015b5c52e517a0b1d68542ac8501",
+      "checkpoint_and_ack_probes.py": "56cd8315e0443751998c9559d6522eaebb69ac135c2337ad5c712a56884f86dc",
+      "draft-exchange-drift/result.json": "9e2f8085954835c39f547f2cd9e323cfd235988dd9e5e299d442ece3bf41b614",
+      "candidate-checkpoint-fault/results.json": "a8ab6c135f1f05dc4f77a10ef4fbe5b1ff3b1fd884285b092c548eb058b879bd",
+      "final-probes/results.json": "cea5b8c203a35d5f0310cdf64a084806ad6e827350a929657ac6721204460561",
+      "final-edge-probes/results.json": "8860c4a279c1ed8d160feb7d9c81095bf1be1bbd5619e2a45469aeae9ef22200",
+      "final-checkpoint-probes/results.json": "8d0cb1243f1f68d76c831d8279c9c5d99878f3e930054b9aface7bfebf17cb01"
+    }
+  },
+  "preserved_source": {
+    "pulse/__init__.py": "1ee1fd80078da01456a8e1741f3881da49edbdad4fc184028dd1db04ba0a38fc",
+    "pulse/cli.py": "f805a840025efc8e0c4ae52f21be2639f6ae5a7cd3f1c589dd192ccacff84757",
+    "pulse/controller.py": "1ddbb8fdfaddca5539b84848d95e50bf4179e9ff4e88515828630acd449bbec7",
+    "pulse/fixtures.py": "3adae60dfd08f45f76feea09496693a28a0bf8807619afe49588e0f6db5d4856",
+    "pulse/model.py": "105c933912eb60cc618042f925061a7aa4c3750ecef707a671662b9bfe12f915",
+    "pulse/principal.py": "01b907105f6668be512d1a4c2c811fd8bbb4a9e4cc6f71b8f9b16ad342013bc9",
+    "pulse/store.py": "3ad16d64adf59884a98e63b7f14e815573c6b20b9a1478c9169e9d3de0ffc360",
+    "continuation.py": "e83f2e0bd4c581e8acfcebae73613a50c1457bcd3154b3a531d3aca2a9acdb1a",
+    "planner-protocol.txt": "ac4ce994f01b162fb31520c916e98b6eccae153e94c22404e8a835a739bbb76c",
+    "test_continuation.py": "5a2a9103d4436c7ffe65d1730513e0c52c712fb6304afd22d52a4c38ad42cdab",
+    "test_consumption.py": "06bed4d0d510b05d6942e31ab51d8c89430bf6a3e926199a764ff9527e12c55f"
+  },
+  "preserved_archives": {
+    "Pulse_local_UNSCORED_reviewed_delivery_20261005.zip": "337d6bdef9bbb75316f33bf2e54088d21a309c624373a36f03ae5ce7093f664d",
+    "Pulse_manual_model_planner_UNSCORED_20261005.zip": "6427f7689f03a6fe0bc0a3a123112d0b782a2caef35a68b667cd5bc38151d6b2",
+    "Pulse_durable_exchange_UNSCORED_20261005.zip": "d122b5eef02d4ad7b2bcc817d46ac458545569f91480d11f0858b2503fcef61b",
+    "Pulse_consumption_reliability_UNSCORED_20261006.zip": "b252d2d74b7d558d251a69edc9f80403a1a10e1b2a3d0158490d7be47420fc97"
+  },
+  "runtime_activation": false,
+  "new_planner_models": 0,
+  "simulations": [
+    "synthetic provider-like outputs",
+    "controlled local clock",
+    "subprocess death and concurrency",
+    "record fault injection"
+  ],
+  "limits": [
+    "Coordinator admissions only; separate direct adapter/principal writers are not fenced",
+    "No live scheduler or provider client",
+    "Unknown charged attempts require review; no inferred acknowledgment or automatic replay",
+    "Deadline controls admission, not in-flight cancellation",
+    "Fresh databases only; no migration/reset/extension",
+    "Atlas R3/Gage R2 and six-scheduled-wake acceptance remain unchanged and unproven"
+  ],
+  "library": {
+    "retry_attempted": false,
+    "saved": false,
+    "prior_blocker": "Supported helper tools/list network failure"
+  }
+}

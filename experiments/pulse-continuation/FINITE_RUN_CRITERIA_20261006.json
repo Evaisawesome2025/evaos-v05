@@ -1,0 +1,18 @@
+{
+  "base_commit": "e3ae254b30924938daac0cd41a491c26645845a1",
+  "classification": "UNSCORED_SANDBOX_COORDINATOR",
+  "frozen_before_implementation_and_tests": true,
+  "scope": "One manually invoked finite-run coordinator; no timer loop, provider client, model launch or external system activation",
+  "criteria": [
+    "Initialize only fresh synthetic principal/exchange/run databases with a fixed finite wake budget and absolute deadline; reject invalid/nonfinite parameters; no reset, extension or migration command.",
+    "Reserve each wake durably before calling the existing tick; concurrent processes and restarts cannot exceed the fixed budget; uncertain reserved attempts are never refunded or repeated.",
+    "Persist observed time and enforce deadline at admission and again before tick; a detected backward clock stops the run; deadline governs admission rather than cancellation of an already admitted wake.",
+    "WAIT before its deadline, BLOCK and verified COMPLETE cause no tick/planner/worker invocation; no ready request means one prepare tick is allowed; an existing request awaiting dispatch does not waste wake budget.",
+    "Any recorded provider launch without a matching bound response stops admission, including stale requests; never dispatch or relaunch a provider job; delivery validation remains in the unchanged exchange.",
+    "Unresolved response consumption, principal lease/recovery ambiguity and unacknowledged coordinator attempts stop admission for review; never infer success from a reservation or an unrelated receipt.",
+    "Bind run configuration and every reservation/result to run identity, initial objective, current principal version/state/journal evidence and exchange evidence; unexpected principal changes or damaged/mismatched records fail closed.",
+    "Persist terminal stops across restart; do not automatically create another run or new objective. A bound response arriving for the exact waiting request may permit a later manually invoked step within the same remaining budget/deadline.",
+    "Keep existing 26 regression tests passing and pulse modules, planner protocol, exchange implementation and old evidence unchanged; label simulated provider/time/fault tests explicitly and do not claim unattended scheduling.",
+    "Independent final adversarial review, exact source hashes, sanitized handoff and verified isolated GitHub feature commit are required. Existing Atlas R3/Gage R2 acceptance and six-scheduled-wake requirement remain unchanged and unproven."
+  ]
+}
