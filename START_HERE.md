@@ -1,30 +1,23 @@
-# Start here — EVAOS brief contract checkpoint
+# Start here — local result-review compatibility
 
-## Current state
+2026-10-06: **documentation-only feature branch; no deployment or main merge.** `next/result-review-contract-20261006` extends reviewed command-center backend `3f47c08e82191d8fe34b45e3c0950c639e17a9cb`. The matching [Joinermill](https://github.com/Evaisawesome2025/joinermill) branch `next/result-review-20261006` extends `a30ccbe885a1fd5523d7450c593638dab8ee2d8c`. Prior command-center and frozen release branches remain untouched. The earlier reviewed releases have not been deployed by this work trail.
 
-2026-10-05: **documentation-only next branch; not deployed or merged to main.** Branch `next/command-center-contract-20261005` starts from frozen reviewed backend `d39936927821ce80087194eec948c7d94857037b`. The frozen `release/brief-validation-20261005` branch remains unchanged. This increment makes no runtime, configuration, deployment-helper or preserved-module change.
+## Why there is no backend runtime change
 
-The matching [Joinermill](https://github.com/Evaisawesome2025/joinermill) branch `next/command-center-20261005` extends frozen `7f78c54097d70dc46d2d51b45f5e3d513f88fe67`. It adds a local work desk, next-action/missing-input notes, explicit browser save/restore/remove, and work-plan export. These notes and save metadata are not backend inputs. The existing six-field brief API covers the only server action, so no additional endpoint or storage is needed.
+The owner can now record an actual result, source note and feedback, capture the original brief as a review target, and explicitly mark needs revision or accepted by owner. The frontend has bounded local JSON backup/import and manual browser save/restore. All result/review state stays in the browser or explicitly downloaded files. Owner claims, source notes and browser timestamps are not independently verified or authenticated. No result URL is fetched, no job runs, and no customer content is stored by the backend.
 
-The first reviewed release in the frozen branch remains undeployed in this work trail. The production Worker version captured before that work is `514bf8c7-30cb-4f8f-bc9e-2c08882a45e8`; this is a historical baseline, not a new claim of current remote state. No live customer records were accessed for this increment.
+The optional format-check request still contains exactly objective, inputs, deliverable, constraints, success and stopRule from the current brief. It excludes results, provenance, feedback, captured targets, decisions and saved metadata. The existing deterministic `/brief/validate` handler is sufficient. Runtime, shared schema, authentication, CORS, bindings/settings, deployment helper and preserved production module are unchanged in this increment.
 
-## Existing contract and deployment continuity
+## Contract and production continuity
 
-`POST /brief/validate` accepts exactly six strings: objective, inputs, deliverable, constraints, success and stopRule. It normalizes whitespace and returns a canonical plain-text export and SHA-256 with `executed:false` and `validation:structure_only`. It does not judge the plan, verify work, fetch supplied links, call models, schedule agents, log bodies or persist customer content. Inputs arrive only after the frontend's explicit format-check action; infrastructure may retain metadata.
+The frozen first-release backend is `d39936927821ce80087194eec948c7d94857037b`; its handler validates/normalizes six strings, returns an exact plain-text brief with SHA-256, and declares executed:false and structure_only. It neither judges quality nor verifies checklist completion. Bounds remain 32 KiB streamed request, three-second body deadline, field/checklist limits and best-effort 60 requests/minute/isolate. Responses use JSON/no-store and allowlisted CORS; existing routes/auth stay intact. The handler stores/logs no body, though infrastructure may retain request metadata.
 
-Bounds remain unchanged: 32 KiB streamed body, three-second read deadline, field limits, 1–12 success criteria, JSON errors/no-store responses, allowlisted browser CORS and a best-effort 60-requests/minute/isolate bucket. Existing route authentication and behavior stay unchanged.
+The captured production module preserves existing routes missing from older main. Do not deploy older main as rollback or use plain wrangler defaults. [worker/RELEASE.md](worker/RELEASE.md) retains the reviewed settings-preserving procedure for a later authorized release. The previously captured Worker version `514bf8c7-30cb-4f8f-bc9e-2c08882a45e8` is historical baseline evidence, not a refreshed current-state assertion.
 
-The preserved production module contains routes missing from the older repository main. `worker/preserved/deployed-514bf8c7.js` is its exact captured code; `worker/src/release.js` delegates every old route to it. Never deploy older main as a rollback, and never use plain wrangler defaults. [worker/RELEASE.md](worker/RELEASE.md) describes the settings-preserving helper and concurrency/hash guards. No binding, secret, settings or security policy is changed by this documentation increment.
+## Resume safely
 
-## Successor checklist
+Read [RELEASE_STATUS.json](RELEASE_STATUS.json), [RELEASE_LOG.md](RELEASE_LOG.md) and the frontend's handoff. Fetch current remote state before editing. Run `cd worker && npm test` (70 tests) and keep `worker/src/brief-model.js` byte-identical to frontend `preview/brief-model.js`. Frontend tests cover 18 units and 41 browser groups with synthetic local requests; its 22 axe scans and desktop/mobile images support accessibility review. The portable handoff records independent signoff, exact remote commits and hashes.
 
-1. Read [RELEASE_STATUS.json](RELEASE_STATUS.json), [RELEASE_LOG.md](RELEASE_LOG.md), worker/RELEASE.md and the matching frontend handoff. Fetch remote state before editing and preserve later work.
-2. Run `cd worker && npm test` (70 tests). Keep `worker/src/brief-model.js` byte-identical to frontend `preview/brief-model.js`. The frontend has 9 unit tests and 25 browser groups; requests are intercepted and the actual Worker handler runs locally with synthetic input.
-3. Review the separate command-center security/privacy review and final exact branch commit hashes supplied with the handoff. Stop at feature-branch publication for this checkpoint; no deployment or main merge is part of it.
-4. A future authorized release must refresh the safe Worker baseline, verify existing network access and preserve all live bindings/settings. Backend comes first, then harmless synthetic probes, then the frontend through existing Pages. Confirm live results rather than inferring them from push/upload.
+Stop at feature-branch publication. No editor/network/Library recovery retries or deployment are part of this checkpoint. Later release work must verify authorized network access and fresh remote/deployed baselines, preserve every live setting, and deploy/verify backend before frontend Pages. No live rollback is needed now. Revert only this documentation commit after inspecting later work if branch rollback is needed; never force-reset main or frozen branches.
 
-No live rollback is needed now. For branch recovery inspect later changes, then revert only this documentation commit. For a later live release use the guarded code rollback in worker/RELEASE.md; it preserves settings and does not roll back customer/KV data.
-
-## Holds and truthful scope
-
-Held [Joinermill PR15](https://github.com/Evaisawesome2025/joinermill/pull/15) and [EVAOS PR32](https://github.com/Evaisawesome2025/evaos-v05/pull/32) remain untouched and unmerged. Pulse remains a separate completed **UNSCORED** controller prototype, absent from this checkout and not deployed. There are no new services, paid model calls, persistent customer writes, jobs, outreach or autonomy claims. Production-source reconciliation is a separate future reviewed task, not part of this increment.
+Held Joinermill PR15 and EVAOS PR32 remain untouched/unmerged. Pulse is separate, completed but **UNSCORED**, absent from this checkout and undeployed. No new accounts/auth, cloud storage, services, paid calls, outreach, spending or autonomy claims are introduced. Production-source reconciliation remains separate future work.

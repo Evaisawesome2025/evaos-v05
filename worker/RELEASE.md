@@ -1,3 +1,11 @@
+# Local result-review compatibility — 2026-10-06
+
+**Documentation-only next branch; no deployment or main merge.** Actual result text, source/provenance, owner feedback/decisions, original review targets and backup metadata are browser-only. JSON import reads a local file without upload. The explicit stateless format check still sends exactly six current brief fields. No backend runtime, schema, authentication, CORS, configuration, binding, deployment-helper or preserved-source change is needed.
+
+This branch extends `3f47c08e82191d8fe34b45e3c0950c639e17a9cb`. Read ../START_HERE.md and ../RELEASE_STATUS.json for the current checkpoint. Procedures below are retained for a later authorized coordinated release, not an instruction to deploy now. Refresh safe remote/Worker baseline evidence before any such release.
+
+---
+
 # Command-center compatibility checkpoint — 2026-10-05
 
 **Documentation-only feature branch; no deployment or main merge.** The next frontend uses the unchanged six-field `/brief/validate` contract. Next-action/unresolved-input notes and browser-save metadata remain local and must not be sent to this endpoint. This branch introduces no backend runtime, setting, binding, authentication or deployment-helper change. The frozen reviewed backend base is `d39936927821ce80087194eec948c7d94857037b`.

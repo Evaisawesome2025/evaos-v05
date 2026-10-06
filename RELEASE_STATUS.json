@@ -1,14 +1,20 @@
 {
   "schema_version": 1,
-  "checkpoint": "command-center-20261005",
+  "checkpoint": "result-review-20261006",
   "scope": "reviewed_feature_branches_only",
   "deployed": false,
   "main_merged": false,
-  "frozen_frontend_base": "7f78c54097d70dc46d2d51b45f5e3d513f88fe67",
-  "frozen_backend_base": "d39936927821ce80087194eec948c7d94857037b",
-  "frontend_branch": "next/command-center-20261005",
-  "backend_branch": "next/command-center-contract-20261005",
+  "frontend_base": "a30ccbe885a1fd5523d7450c593638dab8ee2d8c",
+  "backend_base": "3f47c08e82191d8fe34b45e3c0950c639e17a9cb",
+  "frontend_branch": "next/result-review-20261006",
+  "backend_branch": "next/result-review-contract-20261006",
   "backend_runtime_changed": false,
+  "preserve_branches": [
+    "release/editable-brief-20261005",
+    "release/brief-validation-20261005",
+    "next/command-center-20261005",
+    "next/command-center-contract-20261005"
+  ],
   "held_prs": {
     "joinermill": 15,
     "evaos-v05": 32
@@ -18,31 +24,45 @@
     "deployed": false
   },
   "verification": {
-    "frontend_unit_tests": 9,
+    "frontend_unit_tests": 18,
     "backend_tests": 70,
-    "browser_groups": 25,
-    "axe_scans": 17,
+    "browser_groups": 41,
+    "axe_scans": 22,
     "test_data": "synthetic_only",
     "status": "passed_and_independently_reviewed",
     "axe_violations": 0,
     "browser_page_errors": 0
   },
+  "result_review": {
+    "original_brief_captured": true,
+    "decision_authority": "owner_assertion_only",
+    "identity_authenticated": false,
+    "independent_verification": false,
+    "timestamps": "untrusted_browser_clock",
+    "history": "one_current_record_only"
+  },
   "storage": {
-    "location": "browser_localStorage_only_after_explicit_save",
-    "snapshot_limit_bytes": 65536,
+    "location": "local_browser_or_explicit_download_only",
+    "snapshot_version": 2,
+    "legacy_version_1_readable": true,
+    "snapshot_and_import_limit_bytes": 131072,
     "auto_save": false,
     "auto_restore": false,
     "sync": false,
-    "arbitrary_file_import": false
+    "json_backup_import": "local_read_with_explicit_replacement_confirmation"
   },
-  "server_input": "six_brief_fields_only_on_explicit_format_check",
-  "next_step": "Review exact remote feature-branch commits in the final handoff. Do not merge or deploy in this checkpoint.",
+  "server_input": "six_current_brief_fields_only_on_explicit_format_check",
+  "next_step": "Verify the published new feature-branch commits in the final handoff, then stop. No merge, deployment or further feature.",
   "repository": "evaos-v05",
   "review": {
     "result": "approved_for_feature_branch_publication_only",
-    "open_findings": 0,
+    "open_material_findings": 0,
+    "reviewed_files": 21,
+    "independent_browser_groups": 8,
     "resolved_findings": [
-      "Reset now clears all hidden summary content."
+      "Reject nonstring decision enums before import/render.",
+      "Format-aware JSON download feedback.",
+      "Clear cancelled import status and document reset accurately."
     ]
   }
 }
