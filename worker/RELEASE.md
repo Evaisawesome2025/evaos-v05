@@ -1,3 +1,11 @@
+# Confirmation reliability compatibility — 2026-10-06
+
+**Documentation-only next branch; no merge or deployment.** The frontend's interrupted-confirmation fix changes no six-field request, result/snapshot schema, backend code, authentication/CORS, live setting/binding or deployment helper. Result/owner-review/import state remains browser-only. This branch extends `70099ca9802e2928075b20c721d07d289fafb794` on `next/confirmation-readiness-contract-20261006`.
+
+Read ../READINESS.md for the complete-path audit, best current candidate ancestry, historical tunnel-403 blocker and first-real-user gates. Prior deployment procedures below are retained for a later authorized release, not executed by this increment. Refresh safe remote/Worker evidence first. Pulse is owned by a separate task and is not integrated or touched here.
+
+---
+
 # Local result-review compatibility — 2026-10-06
 
 **Documentation-only next branch; no deployment or main merge.** Actual result text, source/provenance, owner feedback/decisions, original review targets and backup metadata are browser-only. JSON import reads a local file without upload. The explicit stateless format check still sends exactly six current brief fields. No backend runtime, schema, authentication, CORS, configuration, binding, deployment-helper or preserved-source change is needed.

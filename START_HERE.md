@@ -1,6 +1,8 @@
-# Start here — local result-review compatibility
+# Start here — confirmation reliability compatibility
 
-2026-10-06: **documentation-only feature branch; no deployment or main merge.** `next/result-review-contract-20261006` extends reviewed command-center backend `3f47c08e82191d8fe34b45e3c0950c639e17a9cb`. The matching [Joinermill](https://github.com/Evaisawesome2025/joinermill) branch `next/result-review-20261006` extends `a30ccbe885a1fd5523d7450c593638dab8ee2d8c`. Prior command-center and frozen release branches remain untouched. The earlier reviewed releases have not been deployed by this work trail.
+2026-10-06: **documentation-only feature branch; no deployment or main merge.** `next/confirmation-readiness-contract-20261006` extends reviewed result-review backend `70099ca9802e2928075b20c721d07d289fafb794`. The matching [Joinermill](https://github.com/Evaisawesome2025/joinermill) branch `next/confirmation-readiness-20261006` extends `633d4afd1bf5e2586fbf0deda7dab6ec9f09432d`. All prior branches and mains remain preserved.
+
+The frontend fixes a reproduced delayed-import/acceptance race by cancelling superseded imports, making confirmations exclusive and tying acceptance to the exact result reviewed. No backend behavior or contract changes. [READINESS.md](READINESS.md) records the full path audit, deployment candidate ancestry, exact historical public-host denial and first-real-user prerequisites.
 
 ## Why there is no backend runtime change
 
@@ -16,8 +18,8 @@ The captured production module preserves existing routes missing from older main
 
 ## Resume safely
 
-Read [RELEASE_STATUS.json](RELEASE_STATUS.json), [RELEASE_LOG.md](RELEASE_LOG.md) and the frontend's handoff. Fetch current remote state before editing. Run `cd worker && npm test` (70 tests) and keep `worker/src/brief-model.js` byte-identical to frontend `preview/brief-model.js`. Frontend tests cover 18 units and 41 browser groups with synthetic local requests; its 22 axe scans and desktop/mobile images support accessibility review. The portable handoff records independent signoff, exact remote commits and hashes.
+Read [RELEASE_STATUS.json](RELEASE_STATUS.json), [RELEASE_LOG.md](RELEASE_LOG.md) and the frontend's handoff. Fetch current remote state before editing. Run `cd worker && npm test` (70 tests) and keep `worker/src/brief-model.js` byte-identical to frontend `preview/brief-model.js`. Frontend tests cover 18 units and 49 browser groups with synthetic local requests; its 27 axe scans and desktop/mobile images support accessibility review. The portable handoff records independent signoff, exact remote commits and hashes.
 
 Stop at feature-branch publication. No editor/network/Library recovery retries or deployment are part of this checkpoint. Later release work must verify authorized network access and fresh remote/deployed baselines, preserve every live setting, and deploy/verify backend before frontend Pages. No live rollback is needed now. Revert only this documentation commit after inspecting later work if branch rollback is needed; never force-reset main or frozen branches.
 
-Held Joinermill PR15 and EVAOS PR32 remain untouched/unmerged. Pulse is separate, completed but **UNSCORED**, absent from this checkout and undeployed. No new accounts/auth, cloud storage, services, paid calls, outreach, spending or autonomy claims are introduced. Production-source reconciliation remains separate future work.
+Held Joinermill PR15 and EVAOS PR32 remain untouched/unmerged. A separate task owns Pulse; no Pulse path, branch or deployment is inspected or changed here. No Pulse compatibility is tested, and owner acceptance must not be interpreted as a controller score or proof of execution. No new accounts/auth, cloud storage, services, paid calls, outreach, spending or autonomy claims are introduced. Production-source reconciliation remains separate future work.
