@@ -1,0 +1,19 @@
+{
+  "recorded_utc": "2026-10-06T03:18:55.409367+00:00",
+  "method": "GET",
+  "url": "https://evaos-v05-ask.joinermill-ask.workers.dev/health",
+  "client": "Python urllib through existing environment network path",
+  "request_headers_explicitly_set": {
+    "Origin": "https://joinermill.com"
+  },
+  "authentication_supplied": false,
+  "redirects_followed": false,
+  "attempts": 1,
+  "observed_http_status": 403,
+  "response_body_or_connect_status_retained": false,
+  "exact_request_timestamp_retained": false,
+  "evidence": "Pre-deploy smoke command raised AssertionError: ('/health', 403). Harness stopped on the first request; remaining route probes and stateless POST were not performed.",
+  "classification": "HTTP403 on this public request; source of denial not established. Do not generalize earlier curl connectivity result or infer an origin/network cause.",
+  "deployment_attempted": false,
+  "further_public_requests": "stopped; no retry"
+}

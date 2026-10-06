@@ -139,6 +139,10 @@
     "sha256": "c7ad40bcaac23bbca55cca2b901f76f68059b3f0b2853f98f8fa6cddbdc52e16",
     "bytes": 5658
   },
+  "independent-review/VERSION-HELPER-RECEIPT.json": {
+    "sha256": "9413ee9d9a94bbc623582e5c298cdd32894e1d761e6d479e657685ad6fba0703",
+    "bytes": 2663
+  },
   "independent-review/check-helper.py": {
     "sha256": "3bd9ad6278aebd6d29d61f49662ca9995f34a2ec59f421a35613d00098634509",
     "bytes": 5820
@@ -198,6 +202,10 @@
   "instructions-results.json": {
     "sha256": "de89e13bb7f34fd81f0a8bacd7a1776d7d7604fe5eb3791689ffb22177af0061",
     "bytes": 2288
+  },
+  "predeploy-public-probe-failure.json": {
+    "sha256": "aeefc396175e643596c3b57b51148283809dffa2813355e4cad782dac71cf153",
+    "bytes": 950
   },
   "result-axe-1440.json": {
     "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",

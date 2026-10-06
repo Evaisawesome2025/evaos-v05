@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "checkpoint": "cloud-release-verification-20261006",
-  "recorded_utc": "2026-10-06T03:16:26.211786+00:00",
-  "status": "reviewed_versioned_release_ready_for_staging",
+  "recorded_utc": "2026-10-06T03:19:42.966795+00:00",
+  "status": "paused_before_deployment_public_probe_403_and_frontend_patch_hold",
   "frontend_candidate": "ad0af760bae86702526bd935ff6fc5fc17a172f9",
   "backend_candidate": "c23ce45671e9d8bc9d153d65b277caae2f1513a2",
   "handoff_branch": "release/cloud-routine-20261006",
@@ -194,8 +194,9 @@
     "helper_sha256": "278f734ac203e50d26582cacdb2b745a11efdc1dc04d75679f626ab2ab59ff27"
   },
   "remaining_gates": [
-    "Stage backend version; verify inherited binding/runtime equality and unchanged active baseline; activate exact version and verify code/settings/live harmless probes.",
-    "Only then advance frontend main; verify exact Pages commit/CI and live desktop/mobile behavior."
+    "Resolve newly observed public probe HTTP403 with parent-directed supported verification; no blind retry.",
+    "Refresh live production baseline and refs, then deploy/verify backend within approved scope.",
+    "Wait for parent-reviewed phone-readability patch; integrate and rerun affected frontend tests before publication."
   ],
   "scope_preserved": {
     "held_pr_15_32_unmerged": true,
@@ -297,5 +298,28 @@
         }
       ]
     }
-  }
+  },
+  "frontend_publication_hold": "Parent awaits separately reviewed phone-readability patch.",
+  "predeploy_public_probe_failure": {
+    "recorded_utc": "2026-10-06T03:18:55.409367+00:00",
+    "method": "GET",
+    "url": "https://evaos-v05-ask.joinermill-ask.workers.dev/health",
+    "client": "Python urllib through existing environment network path",
+    "request_headers_explicitly_set": {
+      "Origin": "https://joinermill.com"
+    },
+    "authentication_supplied": false,
+    "redirects_followed": false,
+    "attempts": 1,
+    "observed_http_status": 403,
+    "response_body_or_connect_status_retained": false,
+    "exact_request_timestamp_retained": false,
+    "evidence": "Pre-deploy smoke command raised AssertionError: ('/health', 403). Harness stopped on the first request; remaining route probes and stateless POST were not performed.",
+    "classification": "HTTP403 on this public request; source of denial not established. Do not generalize earlier curl connectivity result or infer an origin/network cause.",
+    "deployment_attempted": false,
+    "further_public_requests": "stopped; no retry"
+  },
+  "backend_integration_commit": "3e68fd919d08b302499546c7d3ea0b5c86283e78",
+  "deployment_attempted": false,
+  "rollback_needed": false
 }

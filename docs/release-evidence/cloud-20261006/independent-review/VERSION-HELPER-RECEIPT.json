@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-06T03:16:52.928242+00:00",
+  "reviewed_repository_head": "ba8350cfd6589ebee243fa57e15a2eb43a4a7045",
+  "reviewed_files_sha256": {
+    "worker/tools/deploy-preserving.py": "278f734ac203e50d26582cacdb2b745a11efdc1dc04d75679f626ab2ab59ff27",
+    "worker/test/deploy_preserving_test.py": "35e4f09e2de5ca60a59ff4392f37c805819085778bcea4112f2c431061951056"
+  },
+  "status": "independent_version_only_helper_review_pass",
+  "recommendation": "Proceed within the authorized version-only release scope using live preflight/postflight guards. Stop on drift, uncertain identities, API refusal, or failed restoration checks. This is not a claim of completed deployment.",
+  "runtime_candidate": "c23ce45671e9d8bc9d153d65b277caae2f1513a2",
+  "runtime_source_changed": false,
+  "tests": {
+    "command": "python3 -B -m unittest discover -s test -p 'deploy_preserving_test.py' -v",
+    "methods_passed": 11,
+    "mocked_main_scenarios_passed": 21,
+    "forbidden_write_cases_passed": 4,
+    "failures": 0,
+    "network_calls": 0,
+    "log_sha256": "8218af1ce24020729666b19028ddd2c79cbb2d08c4edee1101cc9bcb69c6ae75"
+  },
+  "allowed_mutations": [
+    "POST /versions",
+    "POST /deployments"
+  ],
+  "disallowed_mutations_tested": [
+    "PUT whole script",
+    "PATCH script settings",
+    "DELETE version",
+    "POST deployments with force query"
+  ],
+  "rollback": "Select exact actual captured predeploy version at 100%, with no force and only while exact owned deployment and observed state are still current; verify version/module/full settings/script-settings afterward.",
+  "script_settings_policy": "Never write. Null values are preserved by leaving script-level settings outside the mutation set. Drift stops the operation instead of guessing resets.",
+  "production_evidence_sources": {
+    "account_token_preflight": "account-token-preflight.json: account endpoint 200/active; prior user-endpoint401 superseded",
+    "baseline": "worker-baseline.json: actual version514bf8c7, module hash equals preserved source, stable settings fingerprints"
+  },
+  "production_calls_by_reviewer": 0,
+  "reviewer_repository_edits": [
+    "worker/test/deploy_preserving_test.py"
+  ],
+  "remaining_limitations": [
+    "Provider operations have no atomic compare-and-swap; narrowly timed concurrent edits cannot be eliminated, only detected by repeated state checks.",
+    "Mocked tests do not prove provider acceptance or live application behavior; coordinator must verify actual write responses and public live checks.",
+    "Ambiguous write responses stop without a blind rollback; follow-up requires inspected current state."
+  ]
+}
