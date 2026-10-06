@@ -1,3 +1,31 @@
+# Coordinated cloud release integration — 2026-10-06
+
+This authorized release uses the reviewed runtime from `d39936927821ce80087194eec948c7d94857037b`, retained through `c23ce45671e9d8bc9d153d65b277caae2f1513a2`, plus the deployment-helper correction described here. Historical branch-only checkpoints below are retained as records. See `../CLOUD_RELEASE_STATUS.json` for the current deployment outcome.
+
+The existing Cloudflare credential is account-owned. Verify it using `GET /accounts/{account_id}/tokens/verify`; the user-token endpoint is not diagnostic for it. On 2026-10-06 at 03:09:24 UTC the correct endpoint returned 200/active and the existing Worker settings read returned 200. The prior `/user/tokens/verify` 401 is superseded by these checks. No credentials or access settings were changed.
+
+## Version-only deployment and actual-production rollback
+
+The helper defaults to read-only preflight. Capture current deployment/version, exact downloaded module hashes, full settings SHA-256, and separate script-settings SHA-256 first. Fingerprints use Python `json.dumps(value, sort_keys=True, separators=(',', ':')).encode()`. Persist only sanitized evidence and authorized source capture; raw settings and credentials remain in memory. The fresh baseline must include `deployments`, `current_module_hashes`, `settings_sha256`, and `script_settings_sha256`.
+
+`python3 -B tools/deploy-preserving.py --baseline /path/worker-baseline.json --output /path/preflight.json` verifies current deployment, settings, script settings, and exact preserved source before any write. `--publish` stages the four reviewed modules with `POST /versions`, explicitly inherits each binding from the captured version, checks staged binding/runtime resources against that version, rechecks current production, then selects the exact uploaded version with `POST /deployments`. No whole-script PUT or settings PATCH is allowed. No provider force flag is supplied.
+
+Script-level logpush, observability, tags and tail-consumer configuration are outside the write set. Their fingerprint is an invariant before upload, before activation and after activation/rollback. Version rollback restores the actual captured code/bindings/runtime. It does not alter external resources or KV/customer records. This avoids the prior whole-script upload's settings-reset risk; it does not invent support for clearing null script settings.
+
+After activation, the helper verifies owned deployment identity, all module hashes and both settings fingerprints. A code/versioned-settings mismatch rolls back only if the exact owned deployment and just-observed state are still current; it then verifies the captured baseline. A concurrent or unknown deployment/script-level edit stops without overwriting it. An uncertain API write is never blindly repeated. Inspect the saved phase and provider state; preserve all returned IDs.
+
+For a later live-check failure while the confirmed release is still current:
+
+```sh
+python3 -B tools/deploy-preserving.py --baseline /path/worker-baseline.json --output /path/rollback.json --rollback --expected-version <exact-release-version> --release-evidence /path/deploy-evidence.json --publish
+```
+
+The command requires the exact owned deployment and code from release evidence and unchanged script settings. It selects the actual baseline version and checks full restoration. It never uses older repository main or reuploads the historical file as a guessed rollback. Provider resource/secret refusal must not be forced.
+
+Read the official [account token verification](https://developers.cloudflare.com/api/resources/accounts/subresources/tokens/methods/verify/), [version upload](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/versions/methods/create/), [deployment selection](https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/deployments/methods/create/), and [rollback](https://developers.cloudflare.com/workers/versions-and-deployments/rollbacks/) contracts. Run `npm test` and `python3 -B -m unittest discover -s test -p 'deploy_preserving_test.py'` before release. The product runtime and six-field schema are unchanged by this integration.
+
+---
+
 # Reusable instructions compatibility — 2026-10-06
 
 Current backend branch `next/reusable-instructions-contract-20261006` extends `31c003066eb771a21f59836110b433e68dad97c4` with documentation only. Runtime, shared six-field model, bindings/auth/CORS/deployment tools and preserved production module remain unchanged from the reviewed frozen release. Frontend `next/reusable-instructions-20261006` extends `6a03b5da0d3d8103a87c6df3e69e71e227b4be5e`. Owner/blocker/handoff definitions and copied directions stay local and are excluded from optional six-field requests. No schema/runtime extension is needed. See ../REUSABLE_INSTRUCTIONS.md and ../READINESS.md. Publication stops at reviewed feature branches; no deployment.

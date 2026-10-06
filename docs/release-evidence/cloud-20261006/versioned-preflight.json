@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-10-06T03:14:35.471244+00:00",
+  "published": false,
+  "rollback": false,
+  "write_attempted": false,
+  "before_version": "514bf8c7-30cb-4f8f-bc9e-2c08882a45e8",
+  "settings_sha256": "59e2c602b2ff276c6c5844faa2117d6f1c353bc6e35fdb1305bd738962faca13",
+  "script_settings_sha256": "d13e83ebe9194fdbde48d1d4a9e2f1fd0b9c653ced072a1aa27fb746062c0e80",
+  "files": {
+    "src/release.js": "f32d108fef3aa252579aaec2d0b9dd818fa40b49d3d7170210bf98974e0f9e4e",
+    "src/brief.js": "db4d90ff5175dff6760209795927de6e9b24b1f9092f380433039cece008fe4b",
+    "src/brief-model.js": "62290c5f5de1ec6ac7e22323ea03d870ce8d393d366218724e4cf2ba1a2fc0ae",
+    "preserved/deployed-514bf8c7.js": "7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f"
+  },
+  "baseline_code_verified": true,
+  "rollback_method": "select_captured_version_without_force",
+  "script_settings_write_scope": "none"
+}

@@ -1,6 +1,6 @@
 # Latest cloud release checkpoint
 
-2026-10-06: candidates passed fresh local tests and independent offline review, but no production deployment occurred. Authenticated Cloudflare verification returned HTTP 401; current production/rollback capture is blocked. See [CLOUD_RELEASE_HANDOFF.md](CLOUD_RELEASE_HANDOFF.md) and [CLOUD_RELEASE_STATUS.json](CLOUD_RELEASE_STATUS.json). Earlier branch-only checkpoints below remain historical.
+2026-10-06: fresh local regression and independent runtime review passed. Account-owned token verification and Worker settings reads returned HTTP 200; the earlier user-token endpoint 401 was not diagnostic. Current production version/module/settings are captured and source equality verified. Version-only deployment/rollback integration is under final review; no production deployment yet. See [CLOUD_RELEASE_HANDOFF.md](CLOUD_RELEASE_HANDOFF.md) and [CLOUD_RELEASE_STATUS.json](CLOUD_RELEASE_STATUS.json). Earlier branch-only checkpoints remain historical.
 
 ---
 

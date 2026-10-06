@@ -3,6 +3,10 @@
     "sha256": "0ff9046b948e8dfd12a916a5d6b72c90de1ea1436b2e98ad07ea5656198c4f91",
     "bytes": 1283
   },
+  "account-token-preflight.json": {
+    "sha256": "f66290ceebd5c3ebda3e605fd1cb14f9513cb9871beb7a656d388db78c69e9b7",
+    "bytes": 1894
+  },
   "axe-1440-about.json": {
     "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "bytes": 2
@@ -50,6 +54,10 @@
   "axe-390-workspace.json": {
     "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "bytes": 2
+  },
+  "backend-unit-tests-integration.log": {
+    "sha256": "0b9207a6139a510d909e45a71dcbaaf41a27ea4752bda4bdf6b5699114af0ca1",
+    "bytes": 6545
   },
   "backend-unit-tests.log": {
     "sha256": "7ea0f1af28b3dd429dbb2fcd530b0f417756b1e760cd48a86ef92e10356311a0",
@@ -107,6 +115,10 @@
     "sha256": "31c8d4ed07eb0ce0a7cb291215fe908f5dbf3ed5f80993a02822b9b4a739b21a",
     "bytes": 1261
   },
+  "deployment-helper-tests.log": {
+    "sha256": "13988890be1c640494101b3adec39000cb7c156e10533599635317b9cc97755c",
+    "bytes": 110
+  },
   "frontend-browser-tests.log": {
     "sha256": "f8bf41ee3b595100b8e9246cc40ef63950ac4caabaaf651bac1058786b405302",
     "bytes": 6058
@@ -123,6 +135,10 @@
     "sha256": "17ad585f28d8b2f438ed28e84683e87da140e510fd69e89daf52343bc5b64056",
     "bytes": 8313
   },
+  "independent-review/ROLLBACK-REVIEW.md": {
+    "sha256": "c7ad40bcaac23bbca55cca2b901f76f68059b3f0b2853f98f8fa6cddbdc52e16",
+    "bytes": 5658
+  },
   "independent-review/check-helper.py": {
     "sha256": "3bd9ad6278aebd6d29d61f49662ca9995f34a2ec59f421a35613d00098634509",
     "bytes": 5820
@@ -138,6 +154,10 @@
   "independent-review/release-checks.log": {
     "sha256": "9bdafd686b8e23d2c343831b8a3974c2b144fe281ef5876d47dfe2cd264eb01a",
     "bytes": 501
+  },
+  "independent-review/version-helper-tests.log": {
+    "sha256": "8218af1ce24020729666b19028ddd2c79cbb2d08c4edee1101cc9bcb69c6ae75",
+    "bytes": 1822
   },
   "instructions-axe-1440-active.json": {
     "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -202,5 +222,13 @@
   "result-review-results.json": {
     "sha256": "49c5f3b513cf04d02f975e52cb71a507b15fb2d615283f3655e3e468f518dede",
     "bytes": 2432
+  },
+  "versioned-preflight.json": {
+    "sha256": "e9c883e4698ee3f8c6437bed97941a16c5cbd588a4faeb6a85f30eb1413a10e3",
+    "bytes": 902
+  },
+  "worker-baseline.json": {
+    "sha256": "e4d69336273a374c50c58806d308f917663507b3bef7c0abfd72bb3e4aeeeca8",
+    "bytes": 1560
   }
 }

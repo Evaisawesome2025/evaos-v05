@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "checkpoint": "cloud-release-verification-20261006",
-  "recorded_utc": "2026-10-06T03:04:43.582856+00:00",
-  "status": "blocked_before_production_capture_or_deployment",
+  "recorded_utc": "2026-10-06T03:16:26.211786+00:00",
+  "status": "reviewed_versioned_release_ready_for_staging",
   "frontend_candidate": "ad0af760bae86702526bd935ff6fc5fc17a172f9",
   "backend_candidate": "c23ce45671e9d8bc9d153d65b277caae2f1513a2",
   "handoff_branch": "release/cloud-routine-20261006",
-  "source_changes": "none; release documentation and sanitized evidence only",
+  "source_changes": "Candidate product runtime unchanged; backend deployment helper uses staged versions and captured-version rollback.",
   "deployed": false,
   "main_updated": false,
   "production_mutations_attempted": false,
@@ -76,15 +76,79 @@
     "attempts": 1,
     "redirects_followed": false,
     "further_authenticated_requests": "stopped",
-    "diagnosis": "Authentication not established; token validity, scope and destination substitution are not inferred."
+    "diagnosis": "Historical user-token endpoint response; account-owned credential requires account endpoint. Superseded by successful account-token verification and Worker settings read."
   },
   "production_baseline": {
-    "fresh_capture_obtained": false,
-    "historical_version": "514bf8c7-30cb-4f8f-bc9e-2c08882a45e8",
-    "historical_module_sha256": "7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f",
-    "current_module_equality_verified": false,
-    "current_settings_fingerprint": null,
-    "rollback_ready": false
+    "captured_utc": "2026-10-06T03:09:52.236044+00:00",
+    "deployments": [
+      {
+        "id": "ca28b3af-6bcb-4b77-97e4-679c1f4bc29d",
+        "versions": [
+          {
+            "version_id": "514bf8c7-30cb-4f8f-bc9e-2c08882a45e8",
+            "percentage": 100
+          }
+        ]
+      }
+    ],
+    "settings_sha256": "59e2c602b2ff276c6c5844faa2117d6f1c353bc6e35fdb1305bd738962faca13",
+    "settings_keys": [
+      "annotations",
+      "bindings",
+      "compatibility_date",
+      "compatibility_flags",
+      "logpush",
+      "placement",
+      "tags",
+      "tail_consumers",
+      "usage_model"
+    ],
+    "bindings": [
+      {
+        "name": "BOUNDARY",
+        "type": "service"
+      },
+      {
+        "name": "BOUNDARY_ORIGIN",
+        "type": "plain_text"
+      },
+      {
+        "name": "GH_PAT",
+        "type": "secret_text"
+      },
+      {
+        "name": "METERING_KV",
+        "type": "kv_namespace"
+      },
+      {
+        "name": "OBJECTIVE",
+        "type": "kv_namespace"
+      },
+      {
+        "name": "OWNER_BEARER",
+        "type": "secret_text"
+      }
+    ],
+    "current_module_hashes": {
+      "index.js": "7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f"
+    },
+    "current_module_matches_preserved": true,
+    "version_detail": {
+      "id": "514bf8c7-30cb-4f8f-bc9e-2c08882a45e8",
+      "resource_keys": [
+        "bindings",
+        "script",
+        "script_runtime"
+      ]
+    },
+    "script_settings_sha256": "d13e83ebe9194fdbde48d1d4a9e2f1fd0b9c653ced072a1aa27fb746062c0e80",
+    "script_setting_keys": [
+      "logpush",
+      "observability",
+      "tags",
+      "tail_consumers"
+    ],
+    "concurrent_state_stable": true
   },
   "pages": {
     "build_type": "legacy",
@@ -115,21 +179,23 @@
     "test_data": "synthetic only",
     "worker_requests": "intercepted and fulfilled by the real local handler; no live stateless POST performed",
     "desktop_mobile_screenshots_inspected": true,
-    "dependency_setup": "npm ci --ignore-scripts --no-audit --no-fund succeeded using /tmp writable cache after default-cache failure"
+    "dependency_setup": "npm ci --ignore-scripts --no-audit --no-fund succeeded using /tmp writable cache after default-cache failure",
+    "deployment_helper_test_methods": 11,
+    "deployment_helper_mocked_main_scenarios": 21,
+    "deployment_helper_forbidden_write_cases": 4
   },
   "independent_review": {
     "runtime_blockers_found": 0,
     "non_validation_delegation_checks": 66,
     "stateless_origin_cases": 4,
     "mocked_helper_scenarios": 6,
-    "production_signoff": "conditional; blocked pending current production provenance and verified settings rollback"
+    "production_signoff": "Reviewed for authorized version-only release, subject to live guards and verification.",
+    "versioned_helper_approved": true,
+    "helper_sha256": "278f734ac203e50d26582cacdb2b745a11efdc1dc04d75679f626ab2ab59ff27"
   },
   "remaining_gates": [
-    "Establish supported existing secret substitution to api.cloudflare.com without creating credentials or changing access settings.",
-    "Capture current production deployment/version, module and settings fingerprint without persisting raw settings or secrets.",
-    "Compare actual current module with historical preserved capture; stop for drift or review an explicit reconciliation.",
-    "Verify supported rollback to actual predeploy version/settings; helper --rollback refuses a settings fingerprint mismatch and cannot repair it.",
-    "Deploy additive backend first, confirm deployed code/settings and harmless stateless/health/route checks; then advance frontend main and verify Pages commit/CI/live desktop/mobile flows."
+    "Stage backend version; verify inherited binding/runtime equality and unchanged active baseline; activate exact version and verify code/settings/live harmless probes.",
+    "Only then advance frontend main; verify exact Pages commit/CI and live desktop/mobile behavior."
   ],
   "scope_preserved": {
     "held_pr_15_32_unmerged": true,
@@ -155,6 +221,81 @@
       "state": "open",
       "merged": false,
       "head": "5c4b08744caa721538187353c391d2073a8589df"
+    }
+  },
+  "authentication_blocker_resolved": true,
+  "account_token_preflight": {
+    "metadata": {
+      "account_matches": true,
+      "existing_credential_configured": true,
+      "existing_https_proxy_configured": true,
+      "credential_value_disclosed": false,
+      "allowed_destination": "api.cloudflare.com"
+    },
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://api.cloudflare.com/client/v4/accounts/ce3e6fa9fccf82aeeb61119930c1c1a7/tokens/verify",
+        "started_utc": "2026-10-06T03:09:24.193605+00:00",
+        "attempts": 1,
+        "redirects_followed": false,
+        "http_status": 200,
+        "success": true,
+        "error_codes": [],
+        "finished_utc": "2026-10-06T03:09:24.365420+00:00"
+      },
+      {
+        "method": "GET",
+        "url": "https://api.cloudflare.com/client/v4/accounts/ce3e6fa9fccf82aeeb61119930c1c1a7/workers/scripts/evaos-v05-ask/settings",
+        "started_utc": "2026-10-06T03:09:24.365448+00:00",
+        "attempts": 1,
+        "redirects_followed": false,
+        "http_status": 200,
+        "success": true,
+        "error_codes": [],
+        "finished_utc": "2026-10-06T03:09:24.709467+00:00"
+      }
+    ],
+    "token_status": "active",
+    "worker_settings": {
+      "sha256": "59e2c602b2ff276c6c5844faa2117d6f1c353bc6e35fdb1305bd738962faca13",
+      "setting_keys": [
+        "annotations",
+        "bindings",
+        "compatibility_date",
+        "compatibility_flags",
+        "logpush",
+        "placement",
+        "tags",
+        "tail_consumers",
+        "usage_model"
+      ],
+      "bindings": [
+        {
+          "name": "BOUNDARY",
+          "type": "service"
+        },
+        {
+          "name": "BOUNDARY_ORIGIN",
+          "type": "plain_text"
+        },
+        {
+          "name": "GH_PAT",
+          "type": "secret_text"
+        },
+        {
+          "name": "METERING_KV",
+          "type": "kv_namespace"
+        },
+        {
+          "name": "OBJECTIVE",
+          "type": "kv_namespace"
+        },
+        {
+          "name": "OWNER_BEARER",
+          "type": "secret_text"
+        }
+      ]
     }
   }
 }

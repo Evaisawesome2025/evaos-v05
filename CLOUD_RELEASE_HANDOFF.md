@@ -1,6 +1,6 @@
 # Cloud release handoff — 2026-10-06
 
-**Status: tested candidates; production release blocked before any deployment.** Public cloud access works. The existing authenticated request path returned HTTP 401, so current Worker provenance and rollback readiness remain unverified. This checkpoint changes release documentation only; candidate runtime files are unchanged.
+**Status: current production baseline verified; version-only release integration under review.** Public cloud access and the account-owned credential work. The earlier user-token endpoint 401 was not diagnostic. Candidate product runtime files are unchanged; the backend helper now stages exact versions and uses provider rollback without changing script-level settings.
 
 Frontend source: `ad0af760bae86702526bd935ff6fc5fc17a172f9`. Backend source: `c23ce45671e9d8bc9d153d65b277caae2f1513a2`. Both exact remote branch tips and the documented ancestry chains were verified. Backend changes after `d39936927821ce80087194eec948c7d94857037b` are documentation only. See [machine-readable status](CLOUD_RELEASE_STATUS.json) and [test evidence](docs/release-evidence/cloud-20261006/).
 
@@ -8,9 +8,17 @@ Fresh verification passes 25 frontend unit tests, 70 backend tests, 64 browser g
 
 At 02:55:31 UTC, one unauthenticated GET to each public URL returned origin HTTP 200 and CONNECT 200 with no redirects or network errors. The homepage title was “EvaOS — your workspace, by Joinermill”; the health summary was `{"ok":true,"service":"evaos-v05-ask"}`. Exact timestamps and response hashes are in the status file.
 
-At 03:00:20.695 UTC, a single authenticated GET to `https://api.cloudflare.com/client/v4/user/tokens/verify` through the repository-documented existing proxy/credential environment returned HTTP 401. Further authenticated requests stopped. No raw credential, settings or response body was printed or saved. The response does not establish whether token validity, scope or destination substitution caused the failure. No approval-review rejection occurred; no deployment was attempted.
+Historical observation: at 03:00:20.695 UTC, a single authenticated GET to `https://api.cloudflare.com/client/v4/user/tokens/verify` through the repository-documented existing proxy/credential environment returned HTTP 401. Further authenticated requests stopped. No raw credential, settings or response body was printed or saved. The response does not establish whether token validity, scope or destination substitution caused the failure. No approval-review rejection occurred; no deployment was attempted.
 
-## Safe continuation
+## Corrected authentication and fresh production baseline
+
+The existing token is account-owned. At 03:09:24 UTC, one request to the documented account-token verification endpoint returned HTTP 200/active; the Worker settings read returned HTTP 200. No credential or access setting changed. The historical user-token endpoint 401 is not evidence that this account-owned token failed. See [Cloudflare account-token documentation](https://developers.cloudflare.com/api/resources/accounts/subresources/tokens/methods/verify/) and the sanitized account-token receipt.
+
+Fresh 03:09:52 UTC capture confirms version `514bf8c7-30cb-4f8f-bc9e-2c08882a45e8` at 100%, deployment `ca28b3af-6bcb-4b77-97e4-679c1f4bc29d`, exact preserved module SHA-256 `7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f`, full settings fingerprint `59e2c602b2ff276c6c5844faa2117d6f1c353bc6e35fdb1305bd738962faca13`, and script-settings fingerprint `d13e83ebe9194fdbde48d1d4a9e2f1fd0b9c653ced072a1aa27fb746062c0e80`. Concurrent-state rechecks were stable. Current production equality is now verified.
+
+The backend helper is being reviewed to use `POST /versions` followed by explicit `POST /deployments`. Each binding inherits from the captured version, and staged runtime/bindings must match before activation. Rollback selects that actual previous version. Script-level settings are never written (no whole-script PUT or settings PATCH); fingerprints guard against drift. This removes the original PUT/settings-reset hazard without guessing how to restore null settings. See backend `worker/RELEASE.md` for the exact procedure and remaining concurrency limits. Product behavior is unchanged.
+
+## Historical blocked-checkpoint continuation (superseded where noted above)
 
 1. Establish the supported existing secret-substitution path for `api.cloudflare.com`; do not create credentials or alter access settings under this release scope.
 2. Fetch current Worker deployments/version, settings and module through that authenticated API. Save only sanitized metadata, settings fingerprint, and authorized source capture; never persist raw settings or secrets. Compare the exact current module to preserved source SHA-256 `7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f`. Refreshing only a version ID is insufficient. Stop for unresolved drift.

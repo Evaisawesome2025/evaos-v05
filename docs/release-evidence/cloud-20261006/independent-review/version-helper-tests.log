@@ -1,0 +1,16 @@
+test_ambiguous_activation_has_no_blind_followup_write (deploy_preserving_test.ReleaseHelperTests.test_ambiguous_activation_has_no_blind_followup_write) ... ok
+test_concurrent_or_script_drift_never_triggers_rollback (deploy_preserving_test.ReleaseHelperTests.test_concurrent_or_script_drift_never_triggers_rollback) ... ok
+test_owned_postflight_failure_restores_actual_baseline_version (deploy_preserving_test.ReleaseHelperTests.test_owned_postflight_failure_restores_actual_baseline_version) ... ok
+test_preactivation_drift_refuses_activation (deploy_preserving_test.ReleaseHelperTests.test_preactivation_drift_refuses_activation) ... ok
+test_preflight_is_read_only (deploy_preserving_test.ReleaseHelperTests.test_preflight_is_read_only) ... ok
+test_provider_rollback_refusal_does_not_force_or_retry (deploy_preserving_test.ReleaseHelperTests.test_provider_rollback_refusal_does_not_force_or_retry) ... ok
+test_request_scope_rejects_non_version_writes_before_network (deploy_preserving_test.ReleaseHelperTests.test_request_scope_rejects_non_version_writes_before_network) ... ok
+test_standalone_rollback_requires_identity_and_unchanged_script_settings (deploy_preserving_test.ReleaseHelperTests.test_standalone_rollback_requires_identity_and_unchanged_script_settings) ... ok
+test_standalone_rollback_selects_exact_baseline (deploy_preserving_test.ReleaseHelperTests.test_standalone_rollback_selects_exact_baseline) ... ok
+test_success_stages_then_deploys_exact_version (deploy_preserving_test.ReleaseHelperTests.test_success_stages_then_deploys_exact_version) ... ok
+test_upload_identity_or_resources_must_be_confirmed (deploy_preserving_test.ReleaseHelperTests.test_upload_identity_or_resources_must_be_confirmed) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.310s
+
+OK

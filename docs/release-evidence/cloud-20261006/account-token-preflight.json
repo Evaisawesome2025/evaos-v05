@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "account_matches": true,
+    "existing_credential_configured": true,
+    "existing_https_proxy_configured": true,
+    "credential_value_disclosed": false,
+    "allowed_destination": "api.cloudflare.com"
+  },
+  "requests": [
+    {
+      "method": "GET",
+      "url": "https://api.cloudflare.com/client/v4/accounts/ce3e6fa9fccf82aeeb61119930c1c1a7/tokens/verify",
+      "started_utc": "2026-10-06T03:09:24.193605+00:00",
+      "attempts": 1,
+      "redirects_followed": false,
+      "http_status": 200,
+      "success": true,
+      "error_codes": [],
+      "finished_utc": "2026-10-06T03:09:24.365420+00:00"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.cloudflare.com/client/v4/accounts/ce3e6fa9fccf82aeeb61119930c1c1a7/workers/scripts/evaos-v05-ask/settings",
+      "started_utc": "2026-10-06T03:09:24.365448+00:00",
+      "attempts": 1,
+      "redirects_followed": false,
+      "http_status": 200,
+      "success": true,
+      "error_codes": [],
+      "finished_utc": "2026-10-06T03:09:24.709467+00:00"
+    }
+  ],
+  "token_status": "active",
+  "worker_settings": {
+    "sha256": "59e2c602b2ff276c6c5844faa2117d6f1c353bc6e35fdb1305bd738962faca13",
+    "setting_keys": [
+      "annotations",
+      "bindings",
+      "compatibility_date",
+      "compatibility_flags",
+      "logpush",
+      "placement",
+      "tags",
+      "tail_consumers",
+      "usage_model"
+    ],
+    "bindings": [
+      {
+        "name": "BOUNDARY",
+        "type": "service"
+      },
+      {
+        "name": "BOUNDARY_ORIGIN",
+        "type": "plain_text"
+      },
+      {
+        "name": "GH_PAT",
+        "type": "secret_text"
+      },
+      {
+        "name": "METERING_KV",
+        "type": "kv_namespace"
+      },
+      {
+        "name": "OBJECTIVE",
+        "type": "kv_namespace"
+      },
+      {
+        "name": "OWNER_BEARER",
+        "type": "secret_text"
+      }
+    ]
+  }
+}
