@@ -267,22 +267,82 @@ class Exchange:
             self.insert(db, 'outcome', rid, value)
         return value
 
-    def reconcile(self):
+    def consumption_binding(self, rows, rid):
+        q = self.request(rows, rid)
+        if self.response(rows, rid) is None:
+            raise ExchangeError('CONSUMPTION_WITHOUT_RESPONSE')
+        response = rows['response', rid]
+        return {**self.binding, 'request_id': rid, 'packet_digest': q['packet_digest'],
+                'input_sha256': q['input_sha256'], 'launch_id': response['launch_id'],
+                'output_sha256': response['output_sha256']}
+
+    def validate_consumption(self, rows, rid):
+        if ('consumption', rid) not in rows:
+            return None
+        expected = self.consumption_binding(rows, rid)
+        if rows['consumption', rid] != expected:
+            raise ExchangeError('CONSUMPTION_BINDING_DAMAGED')
+        return expected
+
+    def consume(self, rid):
+        # Commit before returning a response to the controller. A missing outcome
+        # is uncertainty, never permission to submit the response a second time.
+        with self.connect() as db:
+            db.execute('BEGIN IMMEDIATE')
+            rows = self.read_all(db)
+            q = self.request(rows, rid)
+            proposal = self.response(rows, rid)
+            consumed = self.validate_consumption(rows, rid)
+            if ('outcome', rid) in rows:
+                raise ExchangeError('RESOLVED_RESPONSE_REQUIRES_REVIEW')
+            if consumed is not None:
+                raise ExchangeError('CONSUMPTION_REQUIRES_REVIEW')
+            if proposal is None:
+                raise Pending(rid)
+            self.require_current(q)
+            self.insert(db, 'consumption', rid, self.consumption_binding(rows, rid))
+        return proposal
+
+    def check_unresolved_consumption(self):
         rows = self.records()
+        state = self.principal.snapshot()
+        for kind, rid in rows:
+            if kind != 'consumption':
+                continue
+            self.validate_consumption(rows, rid)
+            if ('outcome', rid) in rows:
+                continue
+            try:
+                self.require_current(self.request(rows, rid))
+            except ExchangeError as exc:
+                if str(exc) != 'STALE_REQUEST':
+                    raise
+                continue  # Original recovery has invalidated this old packet.
+            if not (state['lease'] or state['objective']['recovery_needed']
+                    or state['objective']['active_turn']):
+                raise ExchangeError('CONSUMPTION_REQUIRES_REVIEW')
+            # Existing principal fencing/recovery must run before any new plan.
+
+    def reconcile(self):
         state = self.principal.snapshot()
         with self.principal.store.connect() as db:
             decisions = [(json.loads(body), checksum) for body, checksum in
                          db.execute('SELECT body,hash FROM events')
                          if json.loads(body)['event'] == 'PLANNER_DECISION']
+        # Consumption commits before any controller evidence. Read exchange rows
+        # after the principal evidence so a concurrent receipt cannot outrun the
+        # claim snapshot and appear falsely unbound. Rows are append-only.
+        rows = self.records()
         for (kind, rid), q in rows.items():
             if kind != 'request':
                 continue
             q = self.request(rows, rid)
             proposal = self.response(rows, rid)
+            consumed = self.validate_consumption(rows, rid)
             for tid, turn in state['turns'].items():
                 if turn['packet_digest'] != q['packet_digest'] or tid not in state['receipts']:
                     continue
-                if proposal is None:
+                if proposal is None or consumed is None:
                     raise ExchangeError('UNBOUND_PRINCIPAL_RECEIPT')
                 envelope = turn['envelope']
                 for a, b in [('slot_id','slot_id'),('action','action'),('why_now','why_now'),
@@ -296,7 +356,7 @@ class Exchange:
                 details = event['details']
                 old = q['packet']['objective']
                 new = details['objective']
-                if (proposal is not None and details['proposal'] == proposal
+                if (proposal is not None and consumed is not None and details['proposal'] == proposal
                         and new['objective_id'] == old['objective_id']
                         and new['version'] == old['version'] + 1
                         and new['generation'] == old['generation']
@@ -313,6 +373,7 @@ class Exchange:
                 continue
             q = self.request(rows, rid)
             status = ('RESOLVED' if ('outcome',rid) in rows else
+                      'CONSUMPTION_RECORDED_OUTCOME_UNKNOWN' if ('consumption',rid) in rows else
                       'RESPONSE_READY' if ('response',rid) in rows else
                       'DISPATCH_RECORDED_RESULT_UNKNOWN' if ('launch',rid) in rows else 'READY_FOR_LAUNCH')
             try:
@@ -334,12 +395,7 @@ class DurablePlanner:
         rid = self.last_request = q['request_id']
         if self.crash == 'after_request':
             os._exit(71)
-        rows = self.exchange.records()
-        if ('outcome',rid) in rows:
-            raise ExchangeError('RESOLVED_RESPONSE_REQUIRES_REVIEW')
-        proposal = self.exchange.response(rows, rid)
-        if proposal is None:
-            raise Pending(rid)
+        proposal = self.exchange.consume(rid)
         if self.crash == 'after_response':
             os._exit(72)
         return proposal
@@ -348,6 +404,7 @@ class DurablePlanner:
 def tick(directory, crash=None):
     exchange = Exchange(directory)  # Check binding/integrity before principal mutation.
     exchange.reconcile()
+    exchange.check_unresolved_consumption()
     planner = DurablePlanner(exchange, crash)
     try:
         result = wake(directory, planner=planner, crash_after_start=crash == 'after_start')

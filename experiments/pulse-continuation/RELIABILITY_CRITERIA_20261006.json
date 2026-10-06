@@ -1,0 +1,15 @@
+{
+  "scope": "One bounded restart/exchange reliability increment; synthetic local evidence only; UNSCORED",
+  "base_commit": "9647b675d953bf24e7d32538fc8de83e6dace7b1",
+  "frozen_before_tests": true,
+  "criteria": [
+    "Demonstrate an actual baseline gap with an isolated deterministic adversarial regression before changing implementation; if none exists, do not invent a fix.",
+    "After a response has been handed to the controller, interruption before exchange acknowledgment cannot cause automatic resubmission of that same response, including rejected ACTION and premature COMPLETE.",
+    "A durable consumption claim binds the request, full input, exact output, launch and reviewed code/state evidence; malformed or conflicting evidence must fail closed.",
+    "Concurrent/restarted consumption must produce at most one controller submission per response; identical result delivery stays idempotent and conflicting bytes reject.",
+    "Uncertain launch remains pending without replacement launch; uncertain consumption requires recovery or review; recovery cannot replay ambiguous started work.",
+    "Verified receipts and committed WAIT/BLOCK decisions still reconcile after acknowledgment loss; WAIT does not run work before its deadline, BLOCK/COMPLETE do not start workers, premature COMPLETE does not mark completion.",
+    "Keep all earlier adapter regressions passing; unchanged pulse controller/protocol and preserved old artifacts; no external scheduler/provider/model API or production effects.",
+    "Final source requires independent adversarial review, source hashes, and an isolated remote branch whose exact changed blobs are verified; retain UNSCORED and stronger Atlas R3/Gage R2 limits."
+  ]
+}

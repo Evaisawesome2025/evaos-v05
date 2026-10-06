@@ -1,0 +1,140 @@
+{
+  "classification": "UNSCORED_SYNTHETIC_LOCAL_FAULT_INJECTION",
+  "base_commit": "9647b675d953bf24e7d32538fc8de83e6dace7b1",
+  "frozen_criteria_sha256": "fa409ca66bad6e30abc7b98120b5d301f4036cfc213a13428a96db2570e1cfbf",
+  "baseline_gap_reproduced": [
+    {
+      "proposal": "ACTION",
+      "exit": 73,
+      "status_after_ack_loss": "RESPONSE_READY",
+      "repeat_outcome": "REJECT_AUTHORITY_OR_ACTION",
+      "rejects_before": 1,
+      "rejects_after": 2,
+      "worker_calls": 0
+    },
+    {
+      "proposal": "COMPLETE",
+      "exit": 73,
+      "status_after_ack_loss": "RESPONSE_READY",
+      "repeat_outcome": "REJECT_UNPROVEN_COMPLETE",
+      "rejects_before": 1,
+      "rejects_after": 2,
+      "worker_calls": 0
+    }
+  ],
+  "final_adapter_sha256": "e83f2e0bd4c581e8acfcebae73613a50c1457bcd3154b3a531d3aca2a9acdb1a",
+  "source_manifest_sha256": "7039cbf3b67dbb88cecf663859365c4fbaae685a2f0da31957189011c950a3a1",
+  "tests": {
+    "command": "python -B -m unittest -v test_continuation test_consumption",
+    "passed": 26,
+    "retained_regressions": 20,
+    "new_test_methods": 6,
+    "seconds": 3.445,
+    "log_sha256": "51827e4daf5401baba8d2c9a1a73d76bbd26c54f7b8b03273959f2b5da2027dd"
+  },
+  "independent_review": {
+    "probe_groups": 10,
+    "checksummed_record_fault_cases": 27,
+    "primary_groups": [
+      {
+        "name": "ten_process_rejected_ack_loss_and_duplicate_delivery",
+        "passed": true
+      },
+      {
+        "name": "graceful_exception_after_planner_before_submit",
+        "passed": true
+      },
+      {
+        "name": "wait_and_block_ack_reconcile_without_worker",
+        "passed": true
+      },
+      {
+        "name": "verified_receipt_reconciles_without_reexecution",
+        "passed": true
+      },
+      {
+        "name": "started_work_death_never_replays",
+        "passed": true
+      },
+      {
+        "name": "claim_death_recovery_invalidates_old_request",
+        "passed": true
+      },
+      {
+        "name": "24_rehashed_consumption_schema_and_binding_faults",
+        "passed": true
+      },
+      {
+        "name": "ten_mixed_delivery_and_tick_processes",
+        "passed": true
+      }
+    ],
+    "additional_binding_faults": [
+      {
+        "case": "changed-exact-output",
+        "reason": "CONSUMPTION_BINDING_DAMAGED",
+        "unchanged_principal": true
+      },
+      {
+        "case": "missing-claim-after-receipt",
+        "reason": "UNBOUND_PRINCIPAL_RECEIPT",
+        "unchanged_principal": true
+      },
+      {
+        "case": "response-without-launch",
+        "reason": "LAUNCH_BINDING_DAMAGED",
+        "unchanged_principal": true
+      }
+    ],
+    "race_fix": {
+      "competing_tick_outcome": "PASS",
+      "first_reconcile": "OK",
+      "second_reconcile": "OK",
+      "status": "RESOLVED"
+    },
+    "remaining_material_findings": [],
+    "reviewed_hashes_sha256": "f93291bfe5c1a5a43f2f6d425ae6caaac88c4dac5eceece66126a86b689df599",
+    "evidence_sha256": {
+      "baseline-results.json": "fc1e7d56d52cb5eb2ef572287b55796d7bd85e573bc4f67d37e94438291e7ccc",
+      "final-probes/results.json": "949053c091443af955f4461bda853ea3f85d009d996f21b2add42a65c8fd6636",
+      "final-binding-probes/results.json": "43bf53f93e3df23ea8da02c4e3d0d3275f799b56eb01793224a660ca67f0cd82",
+      "race-probe/result.json": "951986956d6a96a9e30238666ecb6b54485981025244e22125e8a161da2fbdf9",
+      "final-race-probe/result.json": "eaf3c423c84ba3eb2ea53b633961465db7ee4aaa55e928b10c68db9087cccfd4",
+      "probes.py": "2c3854abdee6695a6a5b30169ffd5e5dcbc3ceeecbec76639be690788cbab29d",
+      "probe_utils.py": "c45bb5e1db239b28477ef91ceb51079e0e7d437d720bf0e7651ea359d3e257ac",
+      "extra_binding_probe.py": "b865ed1454066bda4daecc4ed0dff7e7def974d2a2e5b210e260ceb5f451b57f",
+      "reconcile_race.py": "ca3500e87e34e9bdcb6cb3e51ba68a4dd7cf1025ff95a744859e8f96f3268646"
+    }
+  },
+  "unchanged": {
+    "core_and_protocol": true,
+    "previous_tests": true,
+    "earlier_evidence_archives": {
+      "Pulse_durable_exchange_UNSCORED_20261005.zip": {
+        "sha256": "d122b5eef02d4ad7b2bcc817d46ac458545569f91480d11f0858b2503fcef61b",
+        "expected": "d122b5eef02d4ad7b2bcc817d46ac458545569f91480d11f0858b2503fcef61b"
+      },
+      "Pulse_manual_model_planner_UNSCORED_20261005.zip": {
+        "sha256": "6427f7689f03a6fe0bc0a3a123112d0b782a2caef35a68b667cd5bc38151d6b2",
+        "expected": "6427f7689f03a6fe0bc0a3a123112d0b782a2caef35a68b667cd5bc38151d6b2"
+      },
+      "Pulse_local_UNSCORED_reviewed_delivery_20261005.zip": {
+        "sha256": "337d6bdef9bbb75316f33bf2e54088d21a309c624373a36f03ae5ce7093f664d",
+        "expected": "337d6bdef9bbb75316f33bf2e54088d21a309c624373a36f03ae5ce7093f664d"
+      }
+    }
+  },
+  "limits": [
+    "No new model runs or unattended scheduler",
+    "No provider-side exactly-once guarantee",
+    "Shared local filesystem is not adversarial isolation or trusted sealing",
+    "No old-state migration: adapter hash must match",
+    "Claim-only uncertainty can require review without actual submission",
+    "Earlier six scheduled wakes and stronger Atlas R3/Gage R2 criteria remain unproven"
+  ],
+  "library": {
+    "attempted_this_increment": false,
+    "saved": false,
+    "prior_blocker": "Supported helper tools/list network failure; no retry or bypass"
+  }
+}
