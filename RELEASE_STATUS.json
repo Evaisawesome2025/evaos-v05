@@ -1,22 +1,24 @@
 {
   "schema_version": 1,
-  "checkpoint": "confirmation-readiness-20261006",
+  "checkpoint": "reusable-instructions-20261006",
   "scope": "new_reviewed_feature_branches_only",
   "deployed": false,
   "main_merged": false,
-  "frontend_base": "633d4afd1bf5e2586fbf0deda7dab6ec9f09432d",
-  "backend_base": "70099ca9802e2928075b20c721d07d289fafb794",
-  "frontend_branch": "next/confirmation-readiness-20261006",
-  "backend_branch": "next/confirmation-readiness-contract-20261006",
+  "frontend_base": "6a03b5da0d3d8103a87c6df3e69e71e227b4be5e",
+  "backend_base": "31c003066eb771a21f59836110b433e68dad97c4",
+  "frontend_branch": "next/reusable-instructions-20261006",
+  "backend_branch": "next/reusable-instructions-contract-20261006",
   "backend_runtime_changed": false,
-  "snapshot_schema_changed": false,
+  "snapshot_schema_changed": true,
   "preserve_branches": [
     "release/editable-brief-20261005",
     "release/brief-validation-20261005",
     "next/command-center-20261005",
     "next/command-center-contract-20261005",
     "next/result-review-20261006",
-    "next/result-review-contract-20261006"
+    "next/result-review-contract-20261006",
+    "next/confirmation-readiness-20261006",
+    "next/confirmation-readiness-contract-20261006"
   ],
   "held_prs": {
     "joinermill": 15,
@@ -27,21 +29,23 @@
     "paths_or_branches_touched": false,
     "compatibility_tested": false
   },
-  "audit_finding": "Delayed import could leave acceptance confirmation for a different result active.",
-  "fix": "Exclusive interruptible confirmations, exact result identity guard and non-stealing queued focus return.",
   "verification": {
-    "frontend_unit_tests": 18,
+    "frontend_unit_tests": 25,
     "backend_tests": 70,
-    "browser_groups": 49,
-    "axe_scans": 27,
-    "test_data": "synthetic_only",
     "status": "full_regression_and_independent_review_passed",
-    "before_fix_regression": "fails_against_exact_result_review_base",
+    "test_data": "synthetic_only",
+    "browser_groups": 64,
+    "axe_scans": 36,
+    "axe_violations": 0,
+    "page_errors": 0,
     "independent_review": {
       "approved_for_new_feature_branches_only": true,
-      "reviewed_file_count": 17,
-      "browser_groups": 19,
-      "axe_scans": 12,
+      "reviewed_file_count": 30,
+      "frontend_units": 25,
+      "backend_tests": 70,
+      "model_groups": 1,
+      "browser_keyboard_groups": 15,
+      "axe_scans": 9,
       "open_material_findings": 0
     }
   },
@@ -51,6 +55,16 @@
     "first_real_user_workflow": "not_yet_observed",
     "live_release_verified": false
   },
-  "next_step": "Publish only the two reviewed feature branches, verify exact remote commits, record the portable handoff and stop. No merge or deployment.",
-  "repository": "evaos-v05"
+  "next_step": "Publish only the two reviewed reusable-instructions branches, verify exact remote commits, package portable handoff and stop. No further features, merge or deployment.",
+  "repository": "evaos-v05",
+  "feature": "Separate local reusable definition with clean fresh-work start; no execution or assignment.",
+  "schemas": {
+    "instructions": 1,
+    "active_snapshot": 3,
+    "readable_active_versions": [
+      1,
+      2,
+      3
+    ]
+  }
 }

@@ -1,3 +1,7 @@
+# Current candidate — reusable manual instructions
+
+The current branch adds the scoped workflow documented in REUSABLE_INSTRUCTIONS.md on top of the completed confirmation reliability fixes below. Active snapshots now write v3 with nullable copied directions; definition files use a separate v1 format. Runtime/backend contract stays unchanged. The audit findings below describe the prior confirmation checkpoint; public-release and first-user gates still apply.
+
 # Reliability audit and release readiness — 2026-10-06
 
 ## Decision and bounded fix
@@ -26,12 +30,12 @@ No unrelated feature or backend change is bundled. Known disclosed limits such a
 
 ## Best current candidate and ancestry
 
-Use the **new confirmation-readiness branches together** for any later reviewed release; the prior result-review frontend contains the reproduced defect. Exact final pushed commit hashes are recorded in the portable handoff STATUS.json and verified remote-ref evidence. Resolve branch refs again before any future mutation, and inspect concurrent work.
+Use the **new reusable-instructions branches together** for any later reviewed release; the prior result-review frontend contains the reproduced defect. Exact final pushed commit hashes are recorded in the portable handoff STATUS.json and verified remote-ref evidence. Resolve branch refs again before any future mutation, and inspect concurrent work.
 
 | Repository | Unchanged main | Reviewed, undeployed ancestry (oldest to newest) | Current candidate branch |
 |---|---|---|---|
-| Joinermill | `4123538bf18c4eb322c20247e23656625df40169` | `7f78c54097d70dc46d2d51b45f5e3d513f88fe67` → `a30ccbe885a1fd5523d7450c593638dab8ee2d8c` → `633d4afd1bf5e2586fbf0deda7dab6ec9f09432d` → this increment | `next/confirmation-readiness-20261006` |
-| EVAOS | `c15db296c5a7dbf2cb5df40ba8fbe9443e578570` | `d39936927821ce80087194eec948c7d94857037b` → `3f47c08e82191d8fe34b45e3c0950c639e17a9cb` → `70099ca9802e2928075b20c721d07d289fafb794` → this increment | `next/confirmation-readiness-contract-20261006` |
+| Joinermill | `4123538bf18c4eb322c20247e23656625df40169` | `7f78c54097d70dc46d2d51b45f5e3d513f88fe67` → `a30ccbe885a1fd5523d7450c593638dab8ee2d8c` → `633d4afd1bf5e2586fbf0deda7dab6ec9f09432d` → `6a03b5da0d3d8103a87c6df3e69e71e227b4be5e` → this increment | `next/reusable-instructions-20261006` |
+| EVAOS | `c15db296c5a7dbf2cb5df40ba8fbe9443e578570` | `d39936927821ce80087194eec948c7d94857037b` → `3f47c08e82191d8fe34b45e3c0950c639e17a9cb` → `70099ca9802e2928075b20c721d07d289fafb794` → `31c003066eb771a21f59836110b433e68dad97c4` → this increment | `next/reusable-instructions-contract-20261006` |
 
 Backend runtime is still identical to the frozen brief-validation release `d39936927821ce80087194eec948c7d94857037b`; subsequent backend increments are documentation only. Its preservation wrapper/module retain existing deployed routes that older main lacks. Never deploy older backend main as a rollback or use plain wrangler defaults. No Worker binding, secret, auth, CORS or setting is changed by this increment.
 

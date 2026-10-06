@@ -1,3 +1,9 @@
+# Reusable instructions compatibility — 2026-10-06
+
+Current backend branch `next/reusable-instructions-contract-20261006` extends `31c003066eb771a21f59836110b433e68dad97c4` with documentation only. Runtime, shared six-field model, bindings/auth/CORS/deployment tools and preserved production module remain unchanged from the reviewed frozen release. Frontend `next/reusable-instructions-20261006` extends `6a03b5da0d3d8103a87c6df3e69e71e227b4be5e`. Owner/blocker/handoff definitions and copied directions stay local and are excluded from optional six-field requests. No schema/runtime extension is needed. See ../REUSABLE_INSTRUCTIONS.md and ../READINESS.md. Publication stops at reviewed feature branches; no deployment.
+
+---
+
 # Confirmation reliability compatibility — 2026-10-06
 
 **Documentation-only next branch; no merge or deployment.** The frontend's interrupted-confirmation fix changes no six-field request, result/snapshot schema, backend code, authentication/CORS, live setting/binding or deployment helper. Result/owner-review/import state remains browser-only. This branch extends `70099ca9802e2928075b20c721d07d289fafb794` on `next/confirmation-readiness-contract-20261006`.
