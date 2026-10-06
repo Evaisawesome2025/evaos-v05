@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-10-06T03:04:54.005808+00:00",
+  "testedBackendSource": "c23ce45671e9d8bc9d153d65b277caae2f1513a2",
+  "status": "pass",
+  "offlineHelperChecks": [
+    {
+      "case": "preflight",
+      "passed": true,
+      "simulatedUploads": 0
+    },
+    {
+      "case": "publish",
+      "passed": true,
+      "simulatedUploads": 1
+    },
+    {
+      "case": "rollback",
+      "passed": true,
+      "simulatedUploads": 1
+    },
+    {
+      "case": "version-drift",
+      "passed": true,
+      "simulatedUploads": 0
+    },
+    {
+      "case": "late-version-drift",
+      "passed": true,
+      "simulatedUploads": 0
+    },
+    {
+      "case": "late-settings-drift",
+      "passed": true,
+      "simulatedUploads": 0
+    }
+  ],
+  "productionRequests": 0,
+  "helperFilesystemWrites": 0,
+  "limitation": "Mocks verify local request construction and guards, not Cloudflare acceptance, current production provenance, or provider rollback behavior."
+}

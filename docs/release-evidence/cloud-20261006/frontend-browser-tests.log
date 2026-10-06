@@ -1,0 +1,73 @@
+
+> test:browser
+> node tests/browser.cjs && node tests/command-center.cjs && node tests/result-review.cjs && node tests/confirmations.cjs && node tests/instructions.cjs
+
+PASS keyboard entry, objective validation and six-field validation
+PASS text download exactly matches all prepared fields
+PASS optional real handler check, repeated clicks and verified export
+PASS network error and mismatched server output preserve local draft
+PASS cancelled check cannot verify a later draft
+PASS download failure is visible and draft remains available
+PASS back/edit invalidates old verification; markup renders as text
+PASS separate examples and exact 13-role directory preserve user draft
+PASS mobile layout, touch targets and accessible labels
+PASS automated accessibility on editor, review, examples and roster
+PASS 320px reflow and 200 percent desktop sizing
+PASS reset confirmation cancellation, Escape, clear and reload
+PASS no script errors with inaccessible storage
+PASS partial draft saves explicitly, reload needs restore, removal keeps open draft
+PASS desk displays actual objective/output/stop and editable local next-action notes
+PASS full-plan download contains exact planning notes and brief; save repeated click writes once
+PASS optional backend check sends exactly six fields, never local notes or saved metadata
+PASS unsaved edits do not overwrite snapshot; restore cancel and confirm are explicit
+PASS restore interrupts pending validation; stale response cannot validate restored work
+PASS reload keeps content undisclosed until restore and never restores server verification
+PASS storage change in another tab does not replace this open draft
+PASS desktop/mobile desk, saved banner and restore/reset dialogs pass accessibility
+PASS reset clears current plan; saved copy survives until explicit removal
+PASS corrupt, oversized, unsupported-version and injected snapshots cannot restore or execute
+PASS quota and removal failures are visible without dropping the current draft
+PASS empty result cannot be decided; recording validates actual text and provenance
+PASS actual result captures original brief; repeated record click cannot duplicate or change timestamp
+PASS owner decisions require feedback; revision and acceptance are explicit and keyboard-cancellable
+PASS result/source edits invalidate decision and recording; original target survives brief edits and back navigation
+PASS readable export preserves actual result/source/feedback and distinguishes changed brief from review target
+PASS backend format check sends only six current brief fields; result review causes no automatic transmission
+PASS explicit save and reload preserve record but do not restore until requested or retain backend verification
+PASS JSON import cancel preserves current work; confirmation restores exact content without saving or sending
+PASS import cancels pending format check and refuses a late result from the old brief
+PASS invalid/corrupt/oversized/impossible backups preserve current result and saved copy
+PASS markup and dangerous-looking references remain literal text; no result URLs are fetched
+PASS desktop/mobile result and import/accept dialogs pass axe and reflow; screenshots show real synthetic record
+PASS storage quota and blocked access preserve result and still permit explicit backup import/export
+PASS reset clears all result inputs, captured target and review metadata; saved copy remains explicit
+PASS legacy version1 backup restores brief with no fabricated result or decision
+PASS reset interrupts delayed file reading and prevents a stale import prompt or result
+PASS delayed import cannot stack over acceptance or transfer acceptance to another result
+PASS opening reset cancels pending import before either cancellation or confirmed clearing
+PASS opening restore cancels pending import without changing saved or current work until chosen
+PASS cancelled file failures cannot overwrite active accept/reset/restore confirmation or status
+PASS acceptance is bound to its exact result; stale and repeated confirmation events cannot change replaced work
+PASS a fresh import after interruption still confirms normally; superseded reads and Escape cannot resurrect candidates
+PASS queued close callbacks cannot steal the next field focus or route result edits into feedback
+PASS interrupted-operation dialogs retain mobile/desktop focus, reflow and accessible controls
+PASS separate editor starts empty; invalid definition cannot replace accepted active work
+PASS copy helper confirms editor replacement and copies only six brief fields
+PASS explicit definition save and download contain no result and preserve active backup
+PASS cancelled start preserves accepted work; confirmed start clears result, review, notes and validation
+PASS repeated use clears new results again; template edits and active edits stay independent
+PASS active save, readable export and backup preserve copied directions without saving template
+PASS instructions import confirms only editor changes and rejects full backups; reverse import rejects definitions
+PASS strict capped imports reject corrupt, old, extra and hostile shapes while literal text stays inert
+PASS blocked, corrupt and quota storage leave editable/exportable instructions and active data intact
+PASS legacy v1 and v2 active backups restore no directions and never change saved instructions
+PASS leaving editor or opening start cancels delayed imports without stacked or stale confirmations
+PASS editing cancels late read errors and superseded reads cannot replace a newer import
+PASS changed editor invalidates an open start and repeated closed controls cannot replace later work
+PASS clear, load, remove and cross-tab saves affect instructions only with explicit confirmation
+PASS instructions and start dialog have mobile/desktop reflow, keyboard focus and clean accessibility scans
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

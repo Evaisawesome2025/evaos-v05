@@ -1,0 +1,42 @@
+
+> test
+> node --test tests/*.test.js
+
+✔ six actual fields survive preparation and plain text export, with checks unverified (10.848714ms)
+✔ does not fill missing user choices from a canned example (0.455977ms)
+✔ instructions roundtrip normalizes only definition fields and keeps literal text (2.50199ms)
+✔ definition schema refuses full work, extras, inherited result claims, unsafe types and byte excess (2.241577ms)
+✔ repeated starts create independent clean result and directions objects with no execution metadata (0.673484ms)
+✔ new active backup preserves directions while legacy versions default null without altering results (1.191446ms)
+✔ directions export remains owner-written context and does not claim verified responsibility (1.621403ms)
+✔ separate explicit instructions save and removal preserve active work and unrelated storage (0.421755ms)
+✔ corrupt, blocked, quota and silent failed instructions storage operations are reported (0.490499ms)
+✔ record captures canonical original brief and repeated record is idempotent (4.644327ms)
+✔ owner decision requires actual recorded result, source and explanatory feedback (0.459152ms)
+✔ result/source edits clear recording and decision, feedback edit clears decision only (3.792128ms)
+✔ strict result schema rejects forged shapes, impossible states, invalid dates and limits (0.439432ms)
+✔ version3 backup roundtrip preserves literal result, decision and original target exactly (0.960578ms)
+✔ legacy version1 restores empty result without writing or discarding its actual draft (0.384069ms)
+✔ backup parser caps bytes before parsing and rejects unknown/inconsistent result schemas (1.746371ms)
+✔ readable export separates original review target from changed current intent and unverified claims (0.674907ms)
+✔ save verifies the result-inclusive snapshot and reports failed storage without claiming success (0.655728ms)
+✔ round-trips partial drafts and local planning notes with exact user text (2.078221ms)
+✔ rejects corrupt JSON, oversized bytes, unknown schemas, extra fields and unsafe types (0.619213ms)
+✔ caps planning text and treats missing notes as unassessed rather than ready (0.569518ms)
+✔ export distinguishes incomplete brief, actual user plan and no execution (0.370598ms)
+✔ storage writes happen only through explicit save and remove preserves unrelated keys (0.315926ms)
+✔ quota, blocked reads, swallowed writes and swallowed deletion are reported (0.258399ms)
+✔ literal markup remains data through storage and text export (0.241844ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.154949
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

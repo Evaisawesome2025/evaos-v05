@@ -1,0 +1,58 @@
+{
+  "report": [
+    {
+      "name": "keyboard entry, objective validation and six-field validation",
+      "status": "pass"
+    },
+    {
+      "name": "text download exactly matches all prepared fields",
+      "status": "pass"
+    },
+    {
+      "name": "optional real handler check, repeated clicks and verified export",
+      "status": "pass"
+    },
+    {
+      "name": "network error and mismatched server output preserve local draft",
+      "status": "pass"
+    },
+    {
+      "name": "cancelled check cannot verify a later draft",
+      "status": "pass"
+    },
+    {
+      "name": "download failure is visible and draft remains available",
+      "status": "pass"
+    },
+    {
+      "name": "back/edit invalidates old verification; markup renders as text",
+      "status": "pass"
+    },
+    {
+      "name": "separate examples and exact 13-role directory preserve user draft",
+      "status": "pass"
+    },
+    {
+      "name": "mobile layout, touch targets and accessible labels",
+      "status": "pass"
+    },
+    {
+      "name": "automated accessibility on editor, review, examples and roster",
+      "status": "pass"
+    },
+    {
+      "name": "320px reflow and 200 percent desktop sizing",
+      "status": "pass"
+    },
+    {
+      "name": "reset confirmation cancellation, Escape, clear and reload",
+      "status": "pass"
+    },
+    {
+      "name": "no script errors with inaccessible storage",
+      "status": "pass"
+    }
+  ],
+  "requestsToChecker": 4,
+  "pageErrors": []
+}

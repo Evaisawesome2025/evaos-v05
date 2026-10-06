@@ -1,0 +1,67 @@
+{
+  "results": [
+    {
+      "name": "separate editor starts empty; invalid definition cannot replace accepted active work",
+      "status": "pass"
+    },
+    {
+      "name": "copy helper confirms editor replacement and copies only six brief fields",
+      "status": "pass"
+    },
+    {
+      "name": "explicit definition save and download contain no result and preserve active backup",
+      "status": "pass"
+    },
+    {
+      "name": "cancelled start preserves accepted work; confirmed start clears result, review, notes and validation",
+      "status": "pass"
+    },
+    {
+      "name": "repeated use clears new results again; template edits and active edits stay independent",
+      "status": "pass"
+    },
+    {
+      "name": "active save, readable export and backup preserve copied directions without saving template",
+      "status": "pass"
+    },
+    {
+      "name": "instructions import confirms only editor changes and rejects full backups; reverse import rejects definitions",
+      "status": "pass"
+    },
+    {
+      "name": "strict capped imports reject corrupt, old, extra and hostile shapes while literal text stays inert",
+      "status": "pass"
+    },
+    {
+      "name": "blocked, corrupt and quota storage leave editable/exportable instructions and active data intact",
+      "status": "pass"
+    },
+    {
+      "name": "legacy v1 and v2 active backups restore no directions and never change saved instructions",
+      "status": "pass"
+    },
+    {
+      "name": "leaving editor or opening start cancels delayed imports without stacked or stale confirmations",
+      "status": "pass"
+    },
+    {
+      "name": "editing cancels late read errors and superseded reads cannot replace a newer import",
+      "status": "pass"
+    },
+    {
+      "name": "changed editor invalidates an open start and repeated closed controls cannot replace later work",
+      "status": "pass"
+    },
+    {
+      "name": "clear, load, remove and cross-tab saves affect instructions only with explicit confirmation",
+      "status": "pass"
+    },
+    {
+      "name": "instructions and start dialog have mobile/desktop reflow, keyboard focus and clean accessibility scans",
+      "status": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "unexpectedExternalRequests": [],
+  "explicitFormatChecks": 2
+}

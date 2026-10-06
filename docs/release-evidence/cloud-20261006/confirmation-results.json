@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "name": "delayed import cannot stack over acceptance or transfer acceptance to another result",
+      "status": "pass"
+    },
+    {
+      "name": "opening reset cancels pending import before either cancellation or confirmed clearing",
+      "status": "pass"
+    },
+    {
+      "name": "opening restore cancels pending import without changing saved or current work until chosen",
+      "status": "pass"
+    },
+    {
+      "name": "cancelled file failures cannot overwrite active accept/reset/restore confirmation or status",
+      "status": "pass"
+    },
+    {
+      "name": "acceptance is bound to its exact result; stale and repeated confirmation events cannot change replaced work",
+      "status": "pass"
+    },
+    {
+      "name": "a fresh import after interruption still confirms normally; superseded reads and Escape cannot resurrect candidates",
+      "status": "pass"
+    },
+    {
+      "name": "queued close callbacks cannot steal the next field focus or route result edits into feedback",
+      "status": "pass"
+    },
+    {
+      "name": "interrupted-operation dialogs retain mobile/desktop focus, reflow and accessible controls",
+      "status": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "unexpectedExternalRequests": []
+}

@@ -1,3 +1,9 @@
+# Latest cloud release checkpoint
+
+2026-10-06: candidates passed fresh local tests and independent offline review, but no production deployment occurred. Authenticated Cloudflare verification returned HTTP 401; current production/rollback capture is blocked. See [CLOUD_RELEASE_HANDOFF.md](CLOUD_RELEASE_HANDOFF.md) and [CLOUD_RELEASE_STATUS.json](CLOUD_RELEASE_STATUS.json). Earlier branch-only checkpoints below remain historical.
+
+---
+
 # Start here — reusable manual work instructions
 
 2026-10-06: **new feature branches only; no main merge or deployment.** Frontend `next/reusable-instructions-20261006` extends `6a03b5da0d3d8103a87c6df3e69e71e227b4be5e`. Matching backend `next/reusable-instructions-contract-20261006` extends `31c003066eb771a21f59836110b433e68dad97c4`; changes there are documentation only. Read [REUSABLE_INSTRUCTIONS.md](REUSABLE_INSTRUCTIONS.md) for the new workflow, separate file/storage formats, migration and clean-start guarantees.

@@ -1,0 +1,115 @@
+
+> evaos-v05-ask-worker@0.5.0 test
+> node --test test/*.test.js
+
+✔ normalizes only surrounding whitespace, CRLF and checklist blank lines; keeps literal input (2.402149ms)
+✔ rejects invalid shapes, unknown keys, missing/nonstring/overlong/control fields and checklist boundaries (0.94926ms)
+✔ main and production entry generate exact text/hash without bindings or outbound fetch (44.730235ms)
+✔ CORS, methods, types, errors never reflect content (3.861037ms)
+✔ caps chunked input without Content-Length and rejects invalid UTF-8 (1.653832ms)
+✔ times out and cancels stalled stream (3001.246485ms)
+✔ bounded in-memory throttle returns retry hint (10.465778ms)
+✔ captured module hash is exact and old routes delegate unchanged (3.366351ms)
+▶ policy quote
+  ✔ matches the dogfood placeholder and the wire-contract sample hold (1.127628ms)
+  ✔ uses the Chicago calendar day, not UTC (22.84185ms)
+✔ policy quote (25.090007ms)
+▶ classify ask
+  ✔ keeps selftest and explicit demo classes non-billable (0.292711ms)
+  ✔ does not let the client mark a normal ask non-billable (0.229286ms)
+✔ classify ask (0.687205ms)
+▶ preflight deny
+  ✔ denies when the reserve floor would be breached and does not persist (1.363644ms)
+  ✔ denies when the period hard stop is already tripped (0.755277ms)
+  ✔ denies a projection past the hard cap even if auto_overage is set (0.631983ms)
+  ✔ denies at the daily job cap (0.416298ms)
+  ✔ denies at the daily COGS cap (0.855759ms)
+✔ preflight deny (4.417935ms)
+▶ preflight allow
+  ✔ holds the estimated cost and is idempotent (0.816911ms)
+  ✔ flags a soft warning while still allowing under the hard stop (0.483289ms)
+  ✔ keeps open holds when the calendar month rolls (0.918083ms)
+  ✔ leaves the balance untouched for DEMO, REPLAY, SELFTEST, and SAMPLE (0.397278ms)
+✔ preflight allow (2.866939ms)
+▶ complete and release
+  ✔ burns actual COGS, writes JOB_COST, and releases the hold (1.414851ms)
+  ✔ does not burn when the billable job has no hold (0.452813ms)
+  ✔ releases a hold when the job never starts (0.715098ms)
+✔ complete and release (2.763834ms)
+▶ memory and KV ledgers
+  ✔ allows the first hold and denies the next one past the reserve (1.296824ms)
+  ✔ persists the hold in KV before a later deny can see it (1.4004ms)
+✔ memory and KV ledgers (2.843904ms)
+▶ worker intent gate
+  ✔ still returns 401 before any ledger or GitHub call (35.486455ms)
+  ✔ denies a billable ask when the ledger is not bound and does not write (2.452305ms)
+  ✔ keeps selftest and DEMO non-billable without a ledger (2.294917ms)
+  ✔ allows a funded ask, holds 0.5 WC, and passes hold_wc through (1.495703ms)
+  ✔ denies an insufficient ledger without calling GitHub (4.775139ms)
+  ✔ releases the hold when the GitHub write fails (1.288401ms)
+  ✔ settles a hold on /metering/complete without capturing payment (6.367518ms)
+  ✔ reports the guard on health without claiming ready (0.452992ms)
+✔ worker intent gate (55.023297ms)
+▶ source wiring
+  ✔ gates preflight before the GitHub write and does not mention Stripe (0.675297ms)
+  ✔ binds OBJECTIVE on its own namespace and leaves METERING_KV unchanged (0.208894ms)
+  ✔ keeps the objective route off the bearer, GitHub, and metering paths (0.355937ms)
+✔ source wiring (1.370094ms)
+▶ stranger objective save
+  ✔ keeps the sentence and can still gain notes; artifact waits for real work (0.762338ms)
+  ✔ does not create stranger-objective from a public post (0.73024ms)
+  ✔ does not replace a stored sentence and returns its run id (0.788148ms)
+  ✔ resumes the same run on a later post and does not write another artifact (0.479141ms)
+  ✔ refuses other origins, an unbound store, and a held key without writing (1.129331ms)
+  ✔ does not save an empty sentence and leaves bearer routes unchanged (2.839849ms)
+  ✔ reads the stored objective and the matching run id without writing (1.108951ms)
+  ✔ returns 404 when the key is missing or the run id does not match (0.94268ms)
+  ✔ does not read METERING_KV and does not backfill notes on a read (0.509417ms)
+  ✔ reads fixture html without baking a page sentence into the artifact helper (2.103018ms)
+  ✔ does not fetch or store an artifact from a public post (0.743901ms)
+  ✔ does not write when a public post names a page (0.755177ms)
+  ✔ close of Run 1 writes nothing and leaves the stored body unchanged (3.673403ms)
+  ✔ does not write a completed terminal onto Run 1 (0.928318ms)
+  ✔ projects status from events on read and does not write (1.240038ms)
+  ✔ does not rewrite a stored pass-false pair on close (1.696025ms)
+  ✔ does not append a close without the owner boundary (0.794988ms)
+✔ stranger objective save (21.97805ms)
+▶ objective run pointer
+  ✔ stores Run 2 beside an unchanged Run 1 and the pointer names Run 2 (5.117229ms)
+  ✔ reads each run id as its own history and does not create a missing key (0.977983ms)
+  ✔ appends on the open run key only and does not rewrite a terminal run (0.732123ms)
+  ✔ refuses a write that would leave two open runs and writes nothing (0.77689ms)
+  ✔ refuses a write when the pointer disagrees with the one open run (0.433883ms)
+  ✔ GET by run id returns only that run and does not create a missing id (31.371136ms)
+  ✔ unscoped GET returns the open run only when the pointer and the events agree (1.975426ms)
+  ✔ unscoped GET does not mix two open runs (0.598461ms)
+  ✔ public POST and close do not put stranger-objective (1.608343ms)
+✔ objective run pointer (45.157294ms)
+▶ bearer compare
+  ✔ accepts exact match (2.304041ms)
+  ✔ rejects mismatch and length mismatch (0.216146ms)
+✔ bearer compare (3.913266ms)
+▶ body validation
+  ✔ caps length (0.141282ms)
+  ✔ refuses credential keywords (0.33181ms)
+✔ body validation (0.633965ms)
+▶ CORS allowlist
+  ✔ allows Pages, Joinermill, and local origins (0.260923ms)
+  ✔ worker source allowlist matches the mirrored list (1.441882ms)
+✔ CORS allowlist (1.972332ms)
+▶ no secrets in worker source tree contract
+  ✔ worker source has no ghp_/gho_/github_pat_ literals (0.549457ms)
+✔ no secrets in worker source tree contract (0.794427ms)
+ℹ tests 70
+ℹ suites 14
+ℹ pass 70
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3207.977128
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

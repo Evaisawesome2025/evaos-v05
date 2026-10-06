@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "name": "partial draft saves explicitly, reload needs restore, removal keeps open draft",
+      "status": "pass"
+    },
+    {
+      "name": "desk displays actual objective/output/stop and editable local next-action notes",
+      "status": "pass"
+    },
+    {
+      "name": "full-plan download contains exact planning notes and brief; save repeated click writes once",
+      "status": "pass"
+    },
+    {
+      "name": "optional backend check sends exactly six fields, never local notes or saved metadata",
+      "status": "pass"
+    },
+    {
+      "name": "unsaved edits do not overwrite snapshot; restore cancel and confirm are explicit",
+      "status": "pass"
+    },
+    {
+      "name": "restore interrupts pending validation; stale response cannot validate restored work",
+      "status": "pass"
+    },
+    {
+      "name": "reload keeps content undisclosed until restore and never restores server verification",
+      "status": "pass"
+    },
+    {
+      "name": "storage change in another tab does not replace this open draft",
+      "status": "pass"
+    },
+    {
+      "name": "desktop/mobile desk, saved banner and restore/reset dialogs pass accessibility",
+      "status": "pass"
+    },
+    {
+      "name": "reset clears current plan; saved copy survives until explicit removal",
+      "status": "pass"
+    },
+    {
+      "name": "corrupt, oversized, unsupported-version and injected snapshots cannot restore or execute",
+      "status": "pass"
+    },
+    {
+      "name": "quota and removal failures are visible without dropping the current draft",
+      "status": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "requestCount": 2
+}

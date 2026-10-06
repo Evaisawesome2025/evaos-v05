@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "checkpoint": "cloud-release-verification-20261006",
+  "recorded_utc": "2026-10-06T03:04:43.582856+00:00",
+  "status": "blocked_before_production_capture_or_deployment",
+  "frontend_candidate": "ad0af760bae86702526bd935ff6fc5fc17a172f9",
+  "backend_candidate": "c23ce45671e9d8bc9d153d65b277caae2f1513a2",
+  "handoff_branch": "release/cloud-routine-20261006",
+  "source_changes": "none; release documentation and sanitized evidence only",
+  "deployed": false,
+  "main_updated": false,
+  "production_mutations_attempted": false,
+  "frontend_ancestry_verified": [
+    "4123538bf18c4eb322c20247e23656625df40169",
+    "7f78c54097d70dc46d2d51b45f5e3d513f88fe67",
+    "a30ccbe885a1fd5523d7450c593638dab8ee2d8c",
+    "633d4afd1bf5e2586fbf0deda7dab6ec9f09432d",
+    "6a03b5da0d3d8103a87c6df3e69e71e227b4be5e",
+    "ad0af760bae86702526bd935ff6fc5fc17a172f9"
+  ],
+  "backend_ancestry_verified": [
+    "c15db296c5a7dbf2cb5df40ba8fbe9443e578570",
+    "d39936927821ce80087194eec948c7d94857037b",
+    "3f47c08e82191d8fe34b45e3c0950c639e17a9cb",
+    "70099ca9802e2928075b20c721d07d289fafb794",
+    "31c003066eb771a21f59836110b433e68dad97c4",
+    "c23ce45671e9d8bc9d153d65b277caae2f1513a2"
+  ],
+  "backend_changes_after_original_candidate": "documentation only",
+  "current_remote_main": {
+    "joinermill": "4123538bf18c4eb322c20247e23656625df40169",
+    "evaos-v05": "c15db296c5a7dbf2cb5df40ba8fbe9443e578570"
+  },
+  "public_cloud_access": [
+    {
+      "url": "https://joinermill.com/",
+      "started_utc": "2026-10-06T02:55:31.391+00:00",
+      "finished_utc": "2026-10-06T02:55:31.725+00:00",
+      "http_status": 200,
+      "connect_status": 200,
+      "curl_exit_code": 0,
+      "network_error": null,
+      "response_bytes": 12188,
+      "sha256": "182974e1b92c1cca2197b1085faf916a2b8bab7b69bafdd6e6f6ce3d5ecd166b",
+      "sanitized_response": {
+        "html_title": "EvaOS \u2014 your workspace, by Joinermill"
+      }
+    },
+    {
+      "url": "https://evaos-v05-ask.joinermill-ask.workers.dev/health",
+      "started_utc": "2026-10-06T02:55:31.391+00:00",
+      "finished_utc": "2026-10-06T02:55:31.645+00:00",
+      "http_status": 200,
+      "connect_status": 200,
+      "curl_exit_code": 0,
+      "network_error": null,
+      "response_bytes": 123,
+      "sha256": "c572bbdfc37413ceb36d1cd4ee6b1aebaa77ae61620a5ffd8c888af5bf555f50",
+      "sanitized_response": {
+        "ok": true,
+        "service": "evaos-v05-ask"
+      }
+    }
+  ],
+  "public_probe_constraints": {
+    "method": "GET",
+    "attempts_per_url": 1,
+    "authentication_supplied": false,
+    "redirects_followed": false
+  },
+  "authenticated_cloudflare_probe": {
+    "method": "GET",
+    "url": "https://api.cloudflare.com/client/v4/user/tokens/verify",
+    "utc": "2026-10-06T03:00:20.695043+00:00",
+    "http_status": 401,
+    "attempts": 1,
+    "redirects_followed": false,
+    "further_authenticated_requests": "stopped",
+    "diagnosis": "Authentication not established; token validity, scope and destination substitution are not inferred."
+  },
+  "production_baseline": {
+    "fresh_capture_obtained": false,
+    "historical_version": "514bf8c7-30cb-4f8f-bc9e-2c08882a45e8",
+    "historical_module_sha256": "7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f",
+    "current_module_equality_verified": false,
+    "current_settings_fingerprint": null,
+    "rollback_ready": false
+  },
+  "pages": {
+    "build_type": "legacy",
+    "source_branch": "main",
+    "source_path": "/",
+    "cname": "joinermill.com",
+    "status": "built",
+    "built_commit": "4123538bf18c4eb322c20247e23656625df40169",
+    "existing_workflow_state": "disabled_manually",
+    "active_workflow": "dynamic/pages/pages-build-deployment",
+    "successful_existing_run": "https://github.com/Evaisawesome2025/joinermill/actions/runs/37367233537",
+    "configuration_changed": false
+  },
+  "tests": {
+    "frontend_unit": {
+      "passed": 25,
+      "failed": 0
+    },
+    "backend_unit": {
+      "passed": 70,
+      "failed": 0
+    },
+    "browser_groups": 64,
+    "axe_scans": 36,
+    "axe_violations": 0,
+    "page_errors": 0,
+    "shared_model_byte_identical": true,
+    "test_data": "synthetic only",
+    "worker_requests": "intercepted and fulfilled by the real local handler; no live stateless POST performed",
+    "desktop_mobile_screenshots_inspected": true,
+    "dependency_setup": "npm ci --ignore-scripts --no-audit --no-fund succeeded using /tmp writable cache after default-cache failure"
+  },
+  "independent_review": {
+    "runtime_blockers_found": 0,
+    "non_validation_delegation_checks": 66,
+    "stateless_origin_cases": 4,
+    "mocked_helper_scenarios": 6,
+    "production_signoff": "conditional; blocked pending current production provenance and verified settings rollback"
+  },
+  "remaining_gates": [
+    "Establish supported existing secret substitution to api.cloudflare.com without creating credentials or changing access settings.",
+    "Capture current production deployment/version, module and settings fingerprint without persisting raw settings or secrets.",
+    "Compare actual current module with historical preserved capture; stop for drift or review an explicit reconciliation.",
+    "Verify supported rollback to actual predeploy version/settings; helper --rollback refuses a settings fingerprint mismatch and cannot repair it.",
+    "Deploy additive backend first, confirm deployed code/settings and harmless stateless/health/route checks; then advance frontend main and verify Pages commit/CI/live desktop/mobile flows."
+  ],
+  "scope_preserved": {
+    "held_pr_15_32_unmerged": true,
+    "pulse_changed_or_activated": false,
+    "customer_data_accessed": false,
+    "new_services_or_spend": false,
+    "secrets_or_access_settings_changed": false,
+    "private_archives_accessed": false
+  },
+  "runtime_checkpoint": {
+    "utc": "2026-10-06T03:06:11Z",
+    "exec_command_succeeded": true,
+    "checkouts_and_evidence_present": true,
+    "observed_disconnect": false
+  },
+  "held_pull_requests": {
+    "joinermill_15": {
+      "state": "open",
+      "merged": false,
+      "head": "27ac05557c0016e4fe7d48115db5ff1572e59873"
+    },
+    "evaos_v05_32": {
+      "state": "open",
+      "merged": false,
+      "head": "5c4b08744caa721538187353c391d2073a8589df"
+    }
+  }
+}

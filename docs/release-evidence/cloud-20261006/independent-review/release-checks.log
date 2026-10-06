@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-06T03:04:53.948Z",
+  "testedSource": {
+    "frontend": "ad0af760bae86702526bd935ff6fc5fc17a172f9",
+    "backend": "c23ce45671e9d8bc9d153d65b277caae2f1513a2"
+  },
+  "status": "pass",
+  "ancestryChecks": 7,
+  "sharedModelByteIdentical": true,
+  "preservedModuleSha256": "7976a5690e588c36f220b7b9e2fad588b57f9180da26cbfa823dfbe9497ab84f",
+  "exactRequestEnvironmentContextDelegations": 66,
+  "statelessValidationOriginCases": 4,
+  "outboundFetches": 0,
+  "bindingAccesses": 0
+}

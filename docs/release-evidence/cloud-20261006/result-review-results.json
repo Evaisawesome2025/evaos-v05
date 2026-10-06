@@ -1,0 +1,70 @@
+{
+  "results": [
+    {
+      "name": "empty result cannot be decided; recording validates actual text and provenance",
+      "status": "pass"
+    },
+    {
+      "name": "actual result captures original brief; repeated record click cannot duplicate or change timestamp",
+      "status": "pass"
+    },
+    {
+      "name": "owner decisions require feedback; revision and acceptance are explicit and keyboard-cancellable",
+      "status": "pass"
+    },
+    {
+      "name": "result/source edits invalidate decision and recording; original target survives brief edits and back navigation",
+      "status": "pass"
+    },
+    {
+      "name": "readable export preserves actual result/source/feedback and distinguishes changed brief from review target",
+      "status": "pass"
+    },
+    {
+      "name": "backend format check sends only six current brief fields; result review causes no automatic transmission",
+      "status": "pass"
+    },
+    {
+      "name": "explicit save and reload preserve record but do not restore until requested or retain backend verification",
+      "status": "pass"
+    },
+    {
+      "name": "JSON import cancel preserves current work; confirmation restores exact content without saving or sending",
+      "status": "pass"
+    },
+    {
+      "name": "import cancels pending format check and refuses a late result from the old brief",
+      "status": "pass"
+    },
+    {
+      "name": "invalid/corrupt/oversized/impossible backups preserve current result and saved copy",
+      "status": "pass"
+    },
+    {
+      "name": "markup and dangerous-looking references remain literal text; no result URLs are fetched",
+      "status": "pass"
+    },
+    {
+      "name": "desktop/mobile result and import/accept dialogs pass axe and reflow; screenshots show real synthetic record",
+      "status": "pass"
+    },
+    {
+      "name": "storage quota and blocked access preserve result and still permit explicit backup import/export",
+      "status": "pass"
+    },
+    {
+      "name": "reset clears all result inputs, captured target and review metadata; saved copy remains explicit",
+      "status": "pass"
+    },
+    {
+      "name": "legacy version1 backup restores brief with no fabricated result or decision",
+      "status": "pass"
+    },
+    {
+      "name": "reset interrupts delayed file reading and prevents a stale import prompt or result",
+      "status": "pass"
+    }
+  ],
+  "pageErrors": [],
+  "requestCount": 2
+}
